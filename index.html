@@ -34,6 +34,7 @@
     <div id="fish"></div>
     <div id="status" aria-live="polite"></div>
     <div id="word"></div>
+    <div id="unlock-banner"><div class="banner-title">NEW LETTERS UNLOCKED!</div><div class="letters"></div></div>
     <div id="meter"><div id="meter-fill"></div></div>
     <div id="tint"></div>
   </div>
@@ -48,9 +49,18 @@
   <div id="controls">
     <span>Fingers:</span>
     <button class="toggle-btn active" id="guide-toggle">ON</button>
+    <button class="toggle-btn" id="collection-btn">COLLECTION</button>
   </div>
 
   <div id="guide"></div>
+
+  <div id="collection" hidden>
+    <div id="collection-panel">
+      <div id="collection-title">FISH COLLECTION</div>
+      <div id="collection-grid"></div>
+      <button class="toggle-btn" id="collection-close">CLOSE&nbsp;&nbsp;esc</button>
+    </div>
+  </div>
 
   <script type="module" src="app.js"></script>
 </body>

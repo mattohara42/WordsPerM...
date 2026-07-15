@@ -3,22 +3,15 @@
 // filtered to the unlocked letter set.
 import { CONFIG } from "./config.js";
 
-// Unlock progression arrives in M5; until then the set is fixed at stage 1 (home row).
-const unlockedLetters = new Set(CONFIG.unlock.stages[0].letters);
-
-let WORDS = [];   // unlocked entries: { w, d }
-let FISH = [];    // full roster from data/fish.json
+let FULL_POOL = [];              // every entry from data/words.json
+let WORDS = [];                  // entries typeable with the unlocked letters
+let FISH = [];                   // full roster from data/fish.json
+let unlockedLetters = new Set();
 
 async function loadJson(path) {
   const res = await fetch(path);
   if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
   return res.json();
-}
-async function loadWords() {
-  const pool = await loadJson("data/words.json");
-  return pool
-    .filter(entry => [...entry.letters].every(l => unlockedLetters.has(l)))
-    .map(entry => ({ w: entry.w, d: entry.d }));
 }
 
 // ---- Save (localStorage until M4 brings per-kid profiles) ----
@@ -26,6 +19,18 @@ const SAVE_KEY = "typing-fishing-save";
 let save = { coins: 0, caught: {} };
 try { save = { coins: 0, caught: {}, ...JSON.parse(localStorage.getItem(SAVE_KEY) ?? "{}") }; } catch { /* fresh save */ }
 function persistSave() { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }
+
+// ---- Letter unlocks: total catches decide which stages are open ----
+function totalCatches() { return Object.values(save.caught).reduce((a, b) => a + b, 0); }
+function unlockedStageCount(total) {
+  return CONFIG.unlock.stages.filter(s => total >= s.catchesRequired).length;
+}
+function recomputeUnlocks() {
+  const n = unlockedStageCount(totalCatches());
+  unlockedLetters = new Set(CONFIG.unlock.stages.slice(0, n).flatMap(s => [...s.letters]));
+  WORDS = FULL_POOL.filter(e => [...e.letters].every(l => unlockedLetters.has(l)));
+  renderKeyLocks();
+}
 
 // Dad joke flavor text — one pool per moment, picked at random.
 // House rule: cast lines always keep the literal instruction for beginners.
@@ -228,6 +233,7 @@ function land(success) {
     caught++; el.caught.textContent = caught;
     el.fish.classList.add("landing");
     burst(150, 240, 14);
+    const stagesBefore = unlockedStageCount(totalCatches());
     const firstCatch = !save.caught[fish.id];
     const amount = fish.coins + (firstCatch ? CONFIG.economy.firstCatchBonus : 0);
     save.coins += amount;
@@ -238,17 +244,42 @@ function land(success) {
     const isRare = fish.tier === "rare" || fish.tier === "legendary";
     const pun = isRare ? pick(PUNS.catchRare) : pick(PUNS.catchCommon);
     setStatus((firstCatch ? "NEW! " : "") + pun + " — " + fish.name);
+    if (collectionOpen) renderCollection();
+    const stagesAfter = unlockedStageCount(totalCatches());
+    if (stagesAfter > stagesBefore) {
+      const fresh = CONFIG.unlock.stages.slice(stagesBefore, stagesAfter).flatMap(s => [...s.letters]);
+      recomputeUnlocks();
+      showUnlock(fresh);
+      setTimeout(startCast, CONFIG.unlock.celebrateMs);
+      return;
+    }
   } else {
     escaped++; el.escaped.textContent = escaped;
     el.fish.style.left = "760px";
     setStatus(pick(PUNS.escape));
   }
-  setTimeout(startCast, 1500);
+  setTimeout(startCast, CONFIG.reel.recastDelayMs);
+}
+
+// the "new letter!" moment: banner over the pond, fresh keys pulse on the guide
+function showUnlock(letters) {
+  const banner = $("unlock-banner");
+  banner.querySelector(".letters").textContent = letters.join(" ").toUpperCase();
+  banner.classList.add("show");
+  burst(360, 150, 16);
+  letters.forEach(l => {
+    const k = guide.querySelector(`.key[data-ch="${l}"]`);
+    if (k) k.classList.add("fresh");
+  });
+  setTimeout(() => {
+    banner.classList.remove("show");
+    guide.querySelectorAll(".key.fresh").forEach(k => k.classList.remove("fresh"));
+  }, CONFIG.unlock.celebrateMs);
 }
 
 // ---- Input ----
 document.addEventListener("keydown", (e) => {
-  if (inputLocked || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (collectionOpen || inputLocked || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key.length !== 1) return;
   const key = e.key.toLowerCase();
   if (!/[a-z]/.test(key)) return;
@@ -323,6 +354,15 @@ Object.entries(FINGER_HOMES).forEach(([f, home]) => {
   fingerEls[f] = { el: fin, home };
 });
 
+// dim keys the player hasn't unlocked yet (the ";" anchor stays ghosted)
+function renderKeyLocks() {
+  guide.querySelectorAll(".key").forEach(k => {
+    const ch = k.dataset.ch;
+    if (ch === ";") return;
+    k.classList.toggle("locked", !unlockedLetters.has(ch));
+  });
+}
+
 function updateGuide(letter) {
   guide.querySelectorAll(".key.target").forEach(k => k.classList.remove("target"));
   Object.values(fingerEls).forEach(({ el }) => { el.style.transform = ""; el.classList.remove("active"); });
@@ -345,8 +385,46 @@ guideBtn.addEventListener("click", () => {
   updateGuide(guideOn && !inputLocked ? target[typed] : null);
 });
 
+// ---- Collection screen (per-profile once M4 lands; one shared save for now) ----
+let collectionOpen = false;
+const collectionRoot = $("collection");
+const collectionGrid = $("collection-grid");
+
+function renderCollection() {
+  collectionGrid.innerHTML = "";
+  for (const f of FISH) {
+    const count = save.caught[f.id] ?? 0;
+    const cell = document.createElement("div");
+    cell.className = "cell" + (count ? "" : " unknown");
+    const shape = document.createElement("div");
+    shape.className = "cfish";
+    if (count) shape.style.setProperty("--fish-color", f.color);
+    const name = document.createElement("div");
+    name.className = "cname";
+    name.textContent = count ? f.name : "???";
+    const sub = document.createElement("div");
+    sub.className = "csub";
+    sub.textContent = count ? `${f.species} × ${count}` : f.tier;
+    if (count) cell.title = f.blurb;
+    cell.append(shape, name, sub);
+    collectionGrid.appendChild(cell);
+  }
+}
+
+function toggleCollection(open) {
+  collectionOpen = open ?? !collectionOpen;
+  if (collectionOpen) renderCollection();
+  collectionRoot.hidden = !collectionOpen;
+}
+$("collection-btn").addEventListener("click", () => toggleCollection(true));
+$("collection-close").addEventListener("click", () => toggleCollection(false));
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && collectionOpen) toggleCollection(false);
+});
+
 try {
-  [WORDS, FISH] = await Promise.all([loadWords(), loadJson("data/fish.json")]);
+  [FULL_POOL, FISH] = await Promise.all([loadJson("data/words.json"), loadJson("data/fish.json")]);
+  recomputeUnlocks();
   el.coins.textContent = save.coins;
   startCast();
 } catch (err) {

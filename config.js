@@ -13,6 +13,7 @@ export const CONFIG = {
     // reel words match the fish's difficulty; if the unlocked pool has fewer
     // candidates than this, easier difficulties are mixed in until it doesn't
     minReelPoolSize: 8,
+    recastDelayMs: 1500,    // pause on the catch/escape message before recasting
   },
 
   bite: {
@@ -38,6 +39,7 @@ export const CONFIG = {
       { letters: "pvb",       catchesRequired: 60 },
       { letters: "qxz",       catchesRequired: 85 },  // legendary letters — Muskie Quixote territory
     ],
+    celebrateMs: 2600,      // how long the "new letters!" banner holds the stage
   },
 
   shop: {

@@ -39,11 +39,11 @@ Define ~8–10 fish across 3 rarity tiers. Rarity maps to word difficulty. Catch
 Profile picker on launch. Per-kid: unlocked letters, coins, collection, upgrades, accuracy/timing stats (logged silently — feeds v2 adaptive meter). Reuse Family Hub Firestore patterns.
 **Done when:** two profiles maintain fully separate state across reloads.
 
-### M5 — Letter unlock progression
+### ✅ M5 — Letter unlock progression (done 2026-07-15)
 Fish-count milestones unlock new letters in a configured order. Celebration moment on unlock ("new letter!"). Word pool filter updates live.
 **Done when:** a fresh profile starts home-row-only and visibly expands its letter set through play.
 
-### M6 — Collection screen
+### ✅ M6 — Collection screen (done 2026-07-15 — M4 pending, single shared save until then)
 Grid of all fish; uncaught ones as silhouettes. Per-profile.
 **Done when:** catching a new species flips its silhouette.
 
