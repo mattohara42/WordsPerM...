@@ -31,7 +31,7 @@ Port the prototype's cast → wait → reel → catch loop into the real app str
 **Head start: `generate-words.mjs` and a generated `words.json` (3,014 words) already exist — built and validated during design.** Filters a frequency list against a real dictionary, blocklists junk, supplements home row, tags each word with `letters`/`difficulty`/`theme`. Stage coverage verified: 37 home-row words at stage 1, growing to 167 by stage 2 — so keep stage 1 short (few fish to first unlock). This milestone is now just: wire the game to load `words.json` and filter by an unlocked-letter set (hardcode home row for now).
 **Done when:** the game only ever serves words typeable with the configured letter set.
 
-### M3 — Fish, rarity, coins
+### ✅ M3 — Fish, rarity, coins (done 2026-07-15 — CSS placeholder fish, sprite sourcing deferred)
 Define ~8–10 fish across 3 rarity tiers. Rarity maps to word difficulty. Catches award coins. Pixel-art placeholder sprites — source from Kenney.nl (CC0) or itch.io cozy fishing packs; prefer packs sharing one palette. Kid-drawn fish are a legitimate asset pipeline.
 **Done when:** rare fish demand harder words and the coin balance persists across a session.
 

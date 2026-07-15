@@ -6,15 +6,26 @@ import { CONFIG } from "./config.js";
 // Unlock progression arrives in M5; until then the set is fixed at stage 1 (home row).
 const unlockedLetters = new Set(CONFIG.unlock.stages[0].letters);
 
-let WORDS = [];
+let WORDS = [];   // unlocked entries: { w, d }
+let FISH = [];    // full roster from data/fish.json
+
+async function loadJson(path) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`${path}: HTTP ${res.status}`);
+  return res.json();
+}
 async function loadWords() {
-  const res = await fetch("data/words.json");
-  if (!res.ok) throw new Error(`words.json: HTTP ${res.status}`);
-  const pool = await res.json();
+  const pool = await loadJson("data/words.json");
   return pool
     .filter(entry => [...entry.letters].every(l => unlockedLetters.has(l)))
-    .map(entry => entry.w);
+    .map(entry => ({ w: entry.w, d: entry.d }));
 }
+
+// ---- Save (localStorage until M4 brings per-kid profiles) ----
+const SAVE_KEY = "typing-fishing-save";
+let save = { coins: 0, caught: {} };
+try { save = { coins: 0, caught: {}, ...JSON.parse(localStorage.getItem(SAVE_KEY) ?? "{}") }; } catch { /* fresh save */ }
+function persistSave() { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }
 
 // Dad joke flavor text — one pool per moment, picked at random.
 // House rule: cast lines always keep the literal instruction for beginners.
@@ -62,7 +73,8 @@ let phase = "cast";        // cast | wait | reel | done
 let target = "";
 let typed = 0;
 let tension = 0;
-let tier = "common";
+let fish = null;           // roster entry currently on the line
+let reelPool = [];         // words matched to the hooked fish's difficulty
 let wordsToLand = 0;
 let wordsLeft = 0;
 let caught = 0, escaped = 0;
@@ -71,7 +83,7 @@ let inputLocked = false;
 // ---- DOM ----
 const $ = id => document.getElementById(id);
 const el = { scene: $("scene"), word: $("word"), status: $("status"), fill: $("meter-fill"),
-             caught: $("caught"), escaped: $("escaped"), dist: $("dist"),
+             caught: $("caught"), escaped: $("escaped"), coins: $("coins"), dist: $("dist"),
              line: $("line"), fish: $("fish"), water: $("water") };
 
 const pick = a => a[Math.floor(Math.random() * a.length)];
@@ -87,6 +99,18 @@ function pickTier() {
   return "common";
 }
 
+// Words at the fish's difficulty; mix in easier ones only when the unlocked
+// pool is too thin (e.g. stage 1 has a single difficulty-3 word).
+function buildReelPool(difficulty) {
+  let floor = difficulty, pool;
+  do {
+    const f = floor;
+    pool = WORDS.filter(e => e.d >= f && e.d <= difficulty);
+    floor--;
+  } while (pool.length < CONFIG.reel.minReelPoolSize && floor >= 1);
+  return pool;
+}
+
 // ---- Juice ----
 function burst(x, y, n) {
   for (let i = 0; i < n; i++) {
@@ -98,6 +122,14 @@ function burst(x, y, n) {
     el.scene.appendChild(p);
     setTimeout(() => p.remove(), 700);
   }
+}
+function coinFloat(x, y, amount) {
+  const c = document.createElement("div");
+  c.className = "coinfloat";
+  c.textContent = "+" + amount;
+  c.style.left = x + "px"; c.style.top = y + "px";
+  el.scene.appendChild(c);
+  setTimeout(() => c.remove(), 1200);
 }
 function shakeScene() {
   el.scene.classList.remove("shake"); void el.scene.offsetWidth; el.scene.classList.add("shake");
@@ -134,13 +166,14 @@ function setStatus(t) { el.status.textContent = t; }
 // ---- Phases ----
 function startCast() {
   phase = "cast"; inputLocked = false;
-  target = pick(WORDS); typed = 0;
+  target = pick(WORDS).w; typed = 0;
   tension = 0; renderTension();
   el.dist.textContent = "—";
   el.line.style.width = "0px";
   el.fish.style.opacity = 0;
   el.fish.className = "";
   el.fish.style.transform = "";
+  el.fish.style.removeProperty("--fish-color");
   setStatus(pick(PUNS.cast));
   renderWord();
 }
@@ -157,10 +190,13 @@ function startWait() {
 
 function bite() {
   phase = "reel"; inputLocked = false;
-  tier = pickTier();
+  const tier = pickTier();
+  fish = pick(FISH.filter(f => f.tier === tier));
+  reelPool = buildReelPool(fish.difficulty);
   wordsToLand = CONFIG.reel.wordsToLandByTier[tier];
   wordsLeft = wordsToLand;
   el.fish.classList.add("tier-" + tier);
+  el.fish.style.setProperty("--fish-color", fish.color);
   el.fish.style.opacity = 1;
   fishPosition();
   el.dist.textContent = wordsLeft + " words";
@@ -170,7 +206,7 @@ function bite() {
   nextReelWord();
 }
 
-function nextReelWord() { target = pick(WORDS); typed = 0; renderWord(); }
+function nextReelWord() { target = pick(reelPool).w; typed = 0; renderWord(); }
 
 function wordComplete() {
   wordsLeft--;
@@ -192,8 +228,16 @@ function land(success) {
     caught++; el.caught.textContent = caught;
     el.fish.classList.add("landing");
     burst(150, 240, 14);
-    const isRare = tier === "rare" || tier === "legendary";
-    setStatus(isRare ? pick(PUNS.catchRare) : pick(PUNS.catchCommon));
+    const firstCatch = !save.caught[fish.id];
+    const amount = fish.coins + (firstCatch ? CONFIG.economy.firstCatchBonus : 0);
+    save.coins += amount;
+    save.caught[fish.id] = (save.caught[fish.id] ?? 0) + 1;
+    persistSave();
+    el.coins.textContent = save.coins;
+    coinFloat(140, 200, amount);
+    const isRare = fish.tier === "rare" || fish.tier === "legendary";
+    const pun = isRare ? pick(PUNS.catchRare) : pick(PUNS.catchCommon);
+    setStatus((firstCatch ? "NEW! " : "") + pun + " — " + fish.name);
   } else {
     escaped++; el.escaped.textContent = escaped;
     el.fish.style.left = "760px";
@@ -302,7 +346,8 @@ guideBtn.addEventListener("click", () => {
 });
 
 try {
-  WORDS = await loadWords();
+  [WORDS, FISH] = await Promise.all([loadWords(), loadJson("data/fish.json")]);
+  el.coins.textContent = save.coins;
   startCast();
 } catch (err) {
   setStatus("The word pool got away… reload to try again");

@@ -115,27 +115,25 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
   transition: width 0.4s ease;
 }
 
-/* fish color follows rarity tier */
+/* fish body color comes from data/fish.json via --fish-color;
+   rarer tiers add glow (placeholder shapes until real sprites land) */
 #fish {
-  position: absolute; top: 250px; width: 56px; height: 26px; background: var(--moss);
+  position: absolute; top: 250px; width: 56px; height: 26px;
+  background: var(--fish-color, var(--moss));
   border-radius: 12px 4px 4px 12px; opacity: 0;
   transition: left 0.35s ease, opacity 0.3s ease, top 0.35s ease;
 }
-#fish::after { content:""; position:absolute; right:-12px; top:4px; border:9px solid transparent; border-left:14px solid var(--moss); }
+#fish::after { content:""; position:absolute; right:-12px; top:4px; border:9px solid transparent; border-left:14px solid var(--fish-color, var(--moss)); }
 #fish::before { content:""; position:absolute; left:10px; top:8px; width:5px; height:5px; border-radius:50%; background: var(--abyss); }
-#fish.tier-uncommon { background: var(--rose-dusk); }
-#fish.tier-uncommon::after { border-left-color: var(--rose-dusk); }
-#fish.tier-rare { background: var(--gold); box-shadow: 0 0 14px rgba(240,192,96,0.7); }
-#fish.tier-rare::after { border-left-color: var(--gold); }
-#fish.tier-legendary { background: var(--gold); box-shadow: 0 0 22px 6px rgba(240,192,96,0.9); }
-#fish.tier-legendary::after { border-left-color: var(--gold); }
+#fish.tier-rare { box-shadow: 0 0 14px rgba(240,192,96,0.7); }
+#fish.tier-legendary { box-shadow: 0 0 22px 6px rgba(240,192,96,0.9); }
 #fish.landing { animation: fishArc 0.7s ease forwards; }
 @keyframes fishArc {
   40% { transform: translate(-30px, -90px) rotate(-30deg); }
   100% { transform: translate(-60px, -40px) rotate(-70deg); opacity: 0; }
 }
 
-/* particles */
+/* particles & floaters */
 .p {
   position: absolute; width: 7px; height: 7px; border-radius: 50%;
   background: var(--foam); pointer-events: none;
@@ -144,6 +142,12 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
 @keyframes splash {
   to { transform: translate(var(--dx), var(--dy)) scale(0.1); opacity: 0; }
 }
+.coinfloat {
+  position: absolute; font-family: var(--display); font-size: 15px; color: var(--gold);
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6); pointer-events: none;
+  animation: rise 1.1s ease-out forwards;
+}
+@keyframes rise { to { transform: translateY(-52px); opacity: 0; } }
 
 /* UI living inside the pond */
 #status {
@@ -186,6 +190,7 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
   padding: 7px 14px; border-radius: 8px;
 }
 .chip b { color: var(--ink); font-size: 14px; }
+.chip.coins b { color: var(--gold); }
 
 #controls { display: flex; gap: 10px; align-items: center; margin-top: 12px; font-size: 12px; color: var(--dim); }
 .toggle-btn {

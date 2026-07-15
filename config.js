@@ -10,6 +10,9 @@ export const CONFIG = {
     wordPauseMs: 450,       // [PROTO] the reel-crank beat between words
     // bigger fish take more words to land
     wordsToLandByTier: { common: 4, uncommon: 5, rare: 6, legendary: 8 },
+    // reel words match the fish's difficulty; if the unlocked pool has fewer
+    // candidates than this, easier difficulties are mixed in until it doesn't
+    minReelPoolSize: 8,
   },
 
   bite: {
