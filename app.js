@@ -16,9 +16,13 @@ async function loadJson(path) {
 
 // ---- Save (localStorage until M4 brings per-kid profiles) ----
 const SAVE_KEY = "typing-fishing-save";
-let save = { coins: 0, caught: {} };
-try { save = { coins: 0, caught: {}, ...JSON.parse(localStorage.getItem(SAVE_KEY) ?? "{}") }; } catch { /* fresh save */ }
+const DEFAULT_GEAR = { rod: "stick", bait: "worm", owned: { rod: ["stick"], bait: ["worm"] } };
+let save = { coins: 0, caught: {}, gear: DEFAULT_GEAR };
+try { save = { coins: 0, caught: {}, gear: DEFAULT_GEAR, ...JSON.parse(localStorage.getItem(SAVE_KEY) ?? "{}") }; } catch { /* fresh save */ }
 function persistSave() { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }
+
+function equippedRod()  { return CONFIG.shop.rods.find(r => r.id === save.gear.rod); }
+function equippedBait() { return CONFIG.shop.baits.find(b => b.id === save.gear.bait); }
 
 // ---- Letter unlocks: total catches decide which stages are open ----
 function totalCatches() { return Object.values(save.caught).reduce((a, b) => a + b, 0); }
