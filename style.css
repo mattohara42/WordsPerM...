@@ -241,20 +241,20 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
   background: rgba(242,237,227,0.03); border-radius: 50%; pointer-events: none;
 }
 
-/* ============ COLLECTION SCREEN ============ */
-#collection {
+/* ============ OVERLAY SCREENS (collection, shop) ============ */
+.overlay {
   position: fixed; inset: 0; z-index: 10;
   background: rgba(8,18,26,0.75);
   display: flex; align-items: center; justify-content: center;
 }
-#collection[hidden] { display: none; }
-#collection-panel {
+.overlay[hidden] { display: none; }
+.overlay-panel {
   background: var(--abyss); border: 1px solid rgba(240,192,96,0.35);
   border-radius: 14px; padding: 20px 24px; max-width: 680px; max-height: 90vh;
   overflow-y: auto; box-shadow: 0 16px 50px rgba(0,0,0,0.6);
   text-align: center;
 }
-#collection-title { font-family: var(--display); font-size: 13px; color: var(--gold); letter-spacing: 0.12em; margin-bottom: 16px; }
+.overlay-title { font-family: var(--display); font-size: 13px; color: var(--gold); letter-spacing: 0.12em; margin-bottom: 16px; }
 #collection-grid {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px;
 }
@@ -278,6 +278,24 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
 .cname { font-family: var(--display); font-size: 10px; color: var(--ink); min-height: 24px; }
 .cell.unknown .cname { color: var(--dim); }
 .csub { font-size: 10px; color: var(--dim); margin-top: 2px; }
+
+/* ============ SHOP ============ */
+#shop-coins { font-family: var(--display); font-size: 11px; color: var(--dim); margin-bottom: 10px; }
+#shop-coins b { color: var(--gold); font-size: 14px; }
+.shop-section {
+  font-family: var(--display); font-size: 10px; color: var(--dim);
+  letter-spacing: 0.14em; text-align: left; margin: 14px 0 6px;
+}
+.shop-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 12px; margin-bottom: 6px; border-radius: 8px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+}
+.shop-name { font-family: var(--display); font-size: 11px; color: var(--ink); flex: 1; text-align: left; }
+.shop-hint { font-size: 11px; color: var(--dim); }
+.shop-btn { min-width: 104px; }
+.shop-btn:disabled { opacity: 0.4; cursor: default; }
+.shop-btn.equipped { color: var(--abyss); background: var(--moss); border-color: var(--moss); }
 
 @media (prefers-reduced-motion: reduce) {
   .wave, #rig, .cloud, #glitter, #tint { animation: none !important; }

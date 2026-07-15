@@ -75,8 +75,6 @@ const PUNS = {
   ],
 };
 
-const ROD_LEVEL = 1; // rod upgrades arrive with the shop (M7)
-
 // ---- State ----
 let phase = "cast";        // cast | wait | reel | done
 let target = "";
@@ -99,7 +97,7 @@ const pick = a => a[Math.floor(Math.random() * a.length)];
 const rand = (a, b) => a + Math.random() * (b - a);
 
 function pickTier() {
-  const odds = CONFIG.bite.tierOddsByRod[ROD_LEVEL];
+  const odds = CONFIG.bite.tierOddsByRod[equippedRod().rodLevel];
   let r = Math.random();
   for (const [t, p] of Object.entries(odds)) {
     r -= p;
@@ -194,7 +192,7 @@ function startWait() {
   el.line.style.width = "330px";
   burst(400, 195, 5);
   setStatus(pick(PUNS.wait));
-  setTimeout(bite, rand(...CONFIG.bite.delayMsRange));
+  setTimeout(bite, rand(...CONFIG.bite.delayMsRange) * equippedBait().biteSpeedMult);
 }
 
 function bite() {
@@ -283,7 +281,7 @@ function showUnlock(letters) {
 
 // ---- Input ----
 document.addEventListener("keydown", (e) => {
-  if (collectionOpen || inputLocked || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (collectionOpen || shopOpen || inputLocked || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key.length !== 1) return;
   const key = e.key.toLowerCase();
   if (!/[a-z]/.test(key)) return;
@@ -422,8 +420,79 @@ function toggleCollection(open) {
 }
 $("collection-btn").addEventListener("click", () => toggleCollection(true));
 $("collection-close").addEventListener("click", () => toggleCollection(false));
+
+// ---- Shop: buy once, equip freely; effects apply on the next cast ----
+let shopOpen = false;
+const shopRoot = $("shop");
+
+// kid-readable effect blurbs derived from the config numbers
+function rodHint(rod)   { return "luck " + "★".repeat(rod.rodLevel); }
+function baitHint(bait) {
+  const pct = Math.round((1 - bait.biteSpeedMult) * 100);
+  return pct === 0 ? "a patient wiggle" : pct + "% faster bites";
+}
+
+function renderShop() {
+  $("shop-coin-count").textContent = save.coins;
+  renderShopList(CONFIG.shop.rods, $("shop-rods"), "rod", rodHint);
+  renderShopList(CONFIG.shop.baits, $("shop-baits"), "bait", baitHint);
+}
+
+function renderShopList(items, container, kind, hint) {
+  container.innerHTML = "";
+  for (const item of items) {
+    const owned = save.gear.owned[kind].includes(item.id);
+    const equipped = save.gear[kind] === item.id;
+    const row = document.createElement("div");
+    row.className = "shop-row";
+    const name = document.createElement("span");
+    name.className = "shop-name";
+    name.textContent = item.name;
+    const hintEl = document.createElement("span");
+    hintEl.className = "shop-hint";
+    hintEl.textContent = hint(item);
+    const btn = document.createElement("button");
+    btn.className = "toggle-btn shop-btn" + (equipped ? " equipped" : "");
+    if (equipped) {
+      btn.textContent = "EQUIPPED";
+      btn.disabled = true;
+    } else if (owned) {
+      btn.textContent = "EQUIP";
+      btn.addEventListener("click", () => {
+        save.gear[kind] = item.id;
+        persistSave();
+        renderShop();
+      });
+    } else {
+      btn.textContent = "BUY " + item.cost;
+      btn.disabled = save.coins < item.cost;
+      btn.addEventListener("click", () => {
+        if (save.coins < item.cost) return;
+        save.coins -= item.cost;
+        save.gear.owned[kind].push(item.id);
+        save.gear[kind] = item.id;
+        persistSave();
+        el.coins.textContent = save.coins;
+        renderShop();
+      });
+    }
+    row.append(name, hintEl, btn);
+    container.appendChild(row);
+  }
+}
+
+function toggleShop(open) {
+  shopOpen = open ?? !shopOpen;
+  if (shopOpen) renderShop();
+  shopRoot.hidden = !shopOpen;
+}
+$("shop-btn").addEventListener("click", () => toggleShop(true));
+$("shop-close").addEventListener("click", () => toggleShop(false));
+
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && collectionOpen) toggleCollection(false);
+  if (e.key !== "Escape") return;
+  if (collectionOpen) toggleCollection(false);
+  if (shopOpen) toggleShop(false);
 });
 
 try {

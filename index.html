@@ -50,15 +50,28 @@
     <span>Fingers:</span>
     <button class="toggle-btn active" id="guide-toggle">ON</button>
     <button class="toggle-btn" id="collection-btn">COLLECTION</button>
+    <button class="toggle-btn" id="shop-btn">SHOP</button>
   </div>
 
   <div id="guide"></div>
 
-  <div id="collection" hidden>
-    <div id="collection-panel">
-      <div id="collection-title">FISH COLLECTION</div>
+  <div id="collection" class="overlay" hidden>
+    <div class="overlay-panel">
+      <div class="overlay-title">FISH COLLECTION</div>
       <div id="collection-grid"></div>
       <button class="toggle-btn" id="collection-close">CLOSE&nbsp;&nbsp;esc</button>
+    </div>
+  </div>
+
+  <div id="shop" class="overlay" hidden>
+    <div class="overlay-panel">
+      <div class="overlay-title">BAIT &amp; TACKLE</div>
+      <div id="shop-coins">COINS <b id="shop-coin-count">0</b></div>
+      <div class="shop-section">RODS</div>
+      <div id="shop-rods"></div>
+      <div class="shop-section">BAIT</div>
+      <div id="shop-baits"></div>
+      <button class="toggle-btn" id="shop-close">CLOSE&nbsp;&nbsp;esc</button>
     </div>
   </div>
 
