@@ -1,13 +1,20 @@
-// app.js — Typing Fishing core loop (M1: cast → wait → reel → catch).
-// All tuning values come from config.js. Words are the hardcoded stage-1
-// (home row) pool until M2 wires up data/words.json.
+// app.js — Typing Fishing core loop (cast → wait → reel → catch).
+// All tuning values come from config.js. Words come from data/words.json,
+// filtered to the unlocked letter set.
 import { CONFIG } from "./config.js";
 
-// The 37 stage-1 home-row words from data/words.json (inlined for M1; M2 loads the file)
-const WORDS = ["all","has","had","add","ask","half","gas","fall","hall","ads","flag","dad",
-               "adds","glad","sad","ash","asks","dash","hash","shall","flash","glass","falls",
-               "salad","flask","lash","slash","sag","lag","fads","lads","gall","gala","flags",
-               "halls","glads","salads"];
+// Unlock progression arrives in M5; until then the set is fixed at stage 1 (home row).
+const unlockedLetters = new Set(CONFIG.unlock.stages[0].letters);
+
+let WORDS = [];
+async function loadWords() {
+  const res = await fetch("data/words.json");
+  if (!res.ok) throw new Error(`words.json: HTTP ${res.status}`);
+  const pool = await res.json();
+  return pool
+    .filter(entry => [...entry.letters].every(l => unlockedLetters.has(l)))
+    .map(entry => entry.w);
+}
 
 // Dad joke flavor text — one pool per moment, picked at random.
 // House rule: cast lines always keep the literal instruction for beginners.
@@ -294,4 +301,10 @@ guideBtn.addEventListener("click", () => {
   updateGuide(guideOn && !inputLocked ? target[typed] : null);
 });
 
-startCast();
+try {
+  WORDS = await loadWords();
+  startCast();
+} catch (err) {
+  setStatus("The word pool got away… reload to try again");
+  console.error(err);
+}

@@ -23,11 +23,11 @@ Same 3-file vanilla JS pattern as Family Hub, no build step, `python3 -m http.se
 
 ## Milestones
 
-### M1 — Core loop, ported and polished
+### ✅ M1 — Core loop, ported and polished (done 2026-07-15)
 Port the prototype's cast → wait → reel → catch loop into the real app structure. Word-at-a-time pacing (~450ms pause), error-only tension meter, ghost-hands finger guide. Hardcoded word list is fine here.
 **Done when:** the full loop plays in the repo app at parity with the prototype.
 
-### M2 — Word pool
+### ✅ M2 — Word pool (done 2026-07-15)
 **Head start: `generate-words.mjs` and a generated `words.json` (3,014 words) already exist — built and validated during design.** Filters a frequency list against a real dictionary, blocklists junk, supplements home row, tags each word with `letters`/`difficulty`/`theme`. Stage coverage verified: 37 home-row words at stage 1, growing to 167 by stage 2 — so keep stage 1 short (few fish to first unlock). This milestone is now just: wire the game to load `words.json` and filter by an unlocked-letter set (hardcode home row for now).
 **Done when:** the game only ever serves words typeable with the configured letter set.
 
