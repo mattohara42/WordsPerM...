@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Typing Fishing — Feel Prototype</title>
+<style>
+  :root {
+    --water-deep: #16323f;
+    --water-mid: #1f4a5c;
+    --sky: #2a5a70;
+    --ink: #eaf4f7;
+    --dim: #8fb3bf;
+    --good: #7fd8a4;
+    --bad: #e88a7a;
+    --accent: #f2c14e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+    background: linear-gradient(180deg, var(--sky) 0%, var(--water-mid) 35%, var(--water-deep) 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+  h1 { font-size: 15px; font-weight: 600; letter-spacing: 0.08em; color: var(--dim); text-transform: uppercase; }
+
+  #controls {
+    display: flex; gap: 10px; align-items: center; margin: 14px 0 8px;
+    font-size: 13px; color: var(--dim);
+  }
+  .toggle-btn {
+    font: inherit; color: var(--dim); background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 6px;
+    padding: 6px 12px; cursor: pointer;
+  }
+  .toggle-btn.active { color: var(--water-deep); background: var(--accent); border-color: var(--accent); font-weight: 700; }
+  .toggle-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  #scene {
+    position: relative;
+    width: min(680px, 100%);
+    height: 260px;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    overflow: hidden;
+    background:
+      linear-gradient(180deg, transparent 0 58px, rgba(255,255,255,0.12) 58px 60px, rgba(0,0,0,0.18) 60px 100%);
+    margin-top: 10px;
+  }
+  /* the "ugly rectangles" cast, proudly */
+  #boat { position: absolute; left: 24px; top: 26px; width: 74px; height: 26px; background: #b07a4f; border-radius: 4px 12px 6px 6px; }
+  #kid  { position: absolute; left: 40px; top: 4px;  width: 18px; height: 24px; background: var(--accent); border-radius: 4px 4px 2px 2px; }
+  #line {
+    position: absolute; left: 96px; top: 38px; height: 2px; background: rgba(255,255,255,0.55);
+    width: 0; transform-origin: left center; transform: rotate(18deg); transition: width 0.35s ease;
+  }
+  #fish {
+    position: absolute; top: 150px; width: 56px; height: 26px; background: var(--good);
+    border-radius: 12px 4px 4px 12px; opacity: 0; transition: left 0.3s ease, opacity 0.3s ease;
+  }
+  #fish::after { content: ""; position: absolute; right: -12px; top: 4px; border: 9px solid transparent; border-left: 14px solid var(--good); }
+  #fish.rare { background: var(--accent); } #fish.rare::after { border-left-color: var(--accent); }
+  #splash { position: absolute; font-size: 22px; opacity: 0; transition: opacity 0.2s; }
+
+  #status { margin-top: 16px; font-size: 14px; color: var(--dim); min-height: 20px; text-align: center; }
+
+  #word {
+    margin-top: 10px; font-size: 40px; letter-spacing: 0.12em; min-height: 56px; text-align: center;
+  }
+  #word .done { color: var(--good); }
+  #word .todo { color: var(--ink); }
+  #word.shake { animation: shake 0.18s; }
+  @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  @media (prefers-reduced-motion: reduce) { #word.shake { animation: none; } #line, #fish { transition: none; } }
+
+  #meter-wrap { width: min(420px, 90%); margin-top: 18px; }
+  #meter-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-bottom: 4px; }
+  #meter { height: 14px; background: rgba(0,0,0,0.35); border-radius: 7px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15); }
+  #meter-fill { height: 100%; width: 0%; background: var(--good); transition: width 0.15s, background 0.15s; }
+
+  #hud { display: flex; gap: 28px; margin-top: 18px; font-size: 14px; color: var(--dim); }
+  #hud b { color: var(--ink); font-size: 18px; }
+
+  #guide { position: relative; width: 430px; height: 208px; margin-top: 18px; max-width: 100%; }
+  .key {
+    position: absolute; width: 38px; height: 38px;
+    border: 1px solid rgba(255,255,255,0.18); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: var(--dim); background: rgba(0,0,0,0.2);
+  }
+  .key.ghost-key { opacity: 0.35; }
+  .key.target { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 8px rgba(242,193,78,0.4); }
+  .finger {
+    position: absolute; width: 18px;
+    border: 1.5px solid rgba(234,244,247,0.3); background: rgba(255,255,255,0.05);
+    border-radius: 9px; pointer-events: none;
+    transition: transform 0.18s ease, border-color 0.18s, background 0.18s;
+  }
+  .finger.active { border-color: var(--accent); background: rgba(242,193,78,0.18); }
+  .palm {
+    position: absolute; border: 1.5px solid rgba(234,244,247,0.2);
+    background: rgba(255,255,255,0.03); border-radius: 50%; pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) { .finger { transition: none; } }
+
+  #hint { margin-top: 14px; font-size: 12px; color: var(--dim); opacity: 0.8; text-align: center; max-width: 480px; line-height: 1.5; }
+</style>
+</head>
+<body>
+  <h1>Typing Fishing — Feel Prototype</h1>
+
+  <div id="controls">
+    <span>Reel pacing:</span>
+    <button class="toggle-btn active" id="mode-word">Word-at-a-time</button>
+    <button class="toggle-btn" id="mode-stream">Continuous stream</button>
+    <span style="margin-left:14px">Fingers:</span>
+    <button class="toggle-btn active" id="guide-toggle">On</button>
+  </div>
+
+  <div id="scene">
+    <div id="boat"></div>
+    <div id="kid"></div>
+    <div id="line"></div>
+    <div id="fish"></div>
+    <div id="splash">💦</div>
+  </div>
+
+  <div id="status">Type the word below to cast your line</div>
+  <div id="word"></div>
+
+  <div id="meter-wrap">
+    <div id="meter-label"><span>Line tension</span><span>fish escapes at full</span></div>
+    <div id="meter"><div id="meter-fill"></div></div>
+  </div>
+
+  <div id="guide"></div>
+
+  <div id="hud">
+    <span>Caught: <b id="caught">0</b></span>
+    <span>Escaped: <b id="escaped">0</b></span>
+    <span>Reeling: <b id="dist">—</b></span>
+  </div>
+
+  <p id="hint">Errors raise tension; correct letters lower it. Slow typing is always safe — only mashing wrong keys loses the fish. Switch pacing modes any time to compare the feel.</p>
+
+<script>
+(() => {
+  // ---- Config (tuning knobs for feel-testing) ----
+  const CFG = {
+    errorTension: 12,       // tension added per wrong key
+    correctRelief: 3,       // tension removed per correct key
+    escapeAt: 100,
+    wordsToLand: 5,         // words typed during reel to catch the fish
+    biteDelayMs: [1200, 3200],
+    wordPauseMs: 450,       // pause between words in word-at-a-time mode
+  };
+
+  // Simple common lowercase words — feel-testing only, not the real curriculum pool
+  const WORDS = ["fish","lake","reel","cast","dad","sun","water","boat","calm","line",
+                 "pond","fin","tail","swim","wave","hook","bait","rod","dock","frog",
+                 "moss","reed","drift","still","ripple","catch","shore","stone"];
+
+  // ---- State ----
+  let phase = "cast";        // cast | wait | reel | done
+  let mode = "word";         // word | stream
+  let target = "";
+  let typed = 0;
+  let tension = 0;
+  let wordsLeft = 0;
+  let caught = 0, escaped = 0;
+  let inputLocked = false;
+  let biteTimer = null;
+
+  // ---- DOM ----
+  const $ = id => document.getElementById(id);
+  const el = { word: $("word"), status: $("status"), fill: $("meter-fill"),
+               caught: $("caught"), escaped: $("escaped"), dist: $("dist"),
+               line: $("line"), fish: $("fish"), splash: $("splash") };
+
+  const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  const rand = (a, b) => a + Math.random() * (b - a);
+
+  // ---- Rendering ----
+  function renderWord() {
+    el.word.innerHTML =
+      `<span class="done">${target.slice(0, typed)}</span><span class="todo">${target.slice(typed)}</span>`;
+    updateGuide(target[typed]);
+  }
+  function renderTension() {
+    el.fill.style.width = tension + "%";
+    el.fill.style.background = tension > 66 ? "var(--bad)" : tension > 33 ? "var(--accent)" : "var(--good)";
+  }
+  function fishPosition() {
+    // fish moves from right edge toward the boat as wordsLeft drops
+    const progress = 1 - wordsLeft / CFG.wordsToLand;
+    const left = 560 - progress * 440;
+    el.fish.style.left = left + "px";
+  }
+  function setStatus(t) { el.status.textContent = t; }
+
+  // ---- Phases ----
+  function startCast() {
+    phase = "cast"; inputLocked = false;
+    target = pick(WORDS); typed = 0;
+    tension = 0; renderTension();
+    el.dist.textContent = "—";
+    el.line.style.width = "0px";
+    el.fish.style.opacity = 0;
+    el.fish.classList.remove("rare");
+    setStatus("Type the word to cast your line");
+    renderWord();
+  }
+
+  function startWait() {
+    phase = "wait"; inputLocked = true;
+    el.word.textContent = "";
+    updateGuide(null);
+    el.line.style.width = "300px";
+    setStatus("Line's in the water… wait for a bite 🌊");
+    biteTimer = setTimeout(bite, rand(...CFG.biteDelayMs));
+  }
+
+  function bite() {
+    phase = "reel"; inputLocked = false;
+    wordsLeft = CFG.wordsToLand;
+    if (Math.random() < 0.2) el.fish.classList.add("rare");
+    el.fish.style.opacity = 1;
+    fishPosition();
+    el.dist.textContent = wordsLeft + " words";
+    setStatus("Fish on! Type to reel it in");
+    nextReelWord();
+  }
+
+  function nextReelWord() {
+    target = pick(WORDS); typed = 0; renderWord();
+  }
+
+  function wordComplete() {
+    wordsLeft--;
+    el.dist.textContent = wordsLeft > 0 ? wordsLeft + " words" : "landing…";
+    fishPosition();
+    if (wordsLeft <= 0) return land(true);
+    if (mode === "word") {
+      inputLocked = true;
+      el.word.innerHTML = `<span class="done">${target}</span>`;
+      updateGuide(null);
+      setTimeout(() => { inputLocked = false; nextReelWord(); }, CFG.wordPauseMs);
+    } else {
+      nextReelWord(); // continuous: no pause
+    }
+  }
+
+  function land(success) {
+    phase = "done"; inputLocked = true;
+    el.word.textContent = "";
+    updateGuide(null);
+    if (success) {
+      caught++; el.caught.textContent = caught;
+      el.splash.style.left = "96px"; el.splash.style.top = "30px"; el.splash.style.opacity = 1;
+      el.fish.style.left = "70px";
+      setStatus(el.fish.classList.contains("rare") ? "✨ Rare catch! ✨" : "Caught it! 🎣");
+    } else {
+      escaped++; el.escaped.textContent = escaped;
+      el.fish.style.left = "700px";
+      setStatus("It got away… the pond is patient. Cast again.");
+    }
+    setTimeout(() => { el.splash.style.opacity = 0; startCast(); }, 1400);
+  }
+
+  // ---- Input ----
+  document.addEventListener("keydown", (e) => {
+    if (inputLocked || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key.length !== 1) return;
+    const key = e.key.toLowerCase();
+    if (!/[a-z]/.test(key)) return;
+
+    if (key === target[typed]) {
+      typed++;
+      if (phase === "reel") { tension = Math.max(0, tension - CFG.correctRelief); renderTension(); }
+      renderWord();
+      if (typed === target.length) {
+        if (phase === "cast") startWait();
+        else if (phase === "reel") wordComplete();
+      }
+    } else {
+      el.word.classList.remove("shake"); void el.word.offsetWidth; el.word.classList.add("shake");
+      if (phase === "reel") {
+        tension = Math.min(CFG.escapeAt, tension + CFG.errorTension);
+        renderTension();
+        if (tension >= CFG.escapeAt) land(false);
+      }
+    }
+  });
+
+  // ---- Mode toggle ----
+  const btnWord = $("mode-word"), btnStream = $("mode-stream");
+  function setMode(m) {
+    mode = m;
+    btnWord.classList.toggle("active", m === "word");
+    btnStream.classList.toggle("active", m === "stream");
+  }
+  btnWord.addEventListener("click", () => setMode("word"));
+  btnStream.addEventListener("click", () => setMode("stream"));
+
+  // ---- Finger guide (ghost hands over a mini keyboard) ----
+  const KB = { pitch: 42, rows: [
+    { keys: "qwertyuiop", off: 0 },
+    { keys: "asdfghjkl;", off: 12 },
+    { keys: "zxcvbnm",    off: 34 },
+  ]};
+  // Standard touch-typing zones. lp = left pinky ... rp = right pinky.
+  const FINGER_HOMES = { lp:"a", lr:"s", lm:"d", li:"f", ri:"j", rm:"k", rr:"l", rp:";" };
+  const FINGER_LEN   = { lp:50, lr:68, lm:78, li:70, ri:70, rm:78, rr:68, rp:50 };
+  const LETTER_FINGER = {};
+  [["lp","qaz"],["lr","wsx"],["lm","edc"],["li","rfvtgb"],
+   ["ri","yhnujm"],["rm","ik"],["rr","ol"],["rp","p;"]]
+    .forEach(([f, ls]) => [...ls].forEach(l => LETTER_FINGER[l] = f));
+
+  const guide = $("guide");
+  const keyPos = {}, fingerEls = {};
+  let guideOn = true;
+
+  KB.rows.forEach((row, r) => {
+    [...row.keys].forEach((ch, i) => {
+      const x = row.off + i * KB.pitch, y = r * KB.pitch;
+      keyPos[ch] = { x: x + 19, y: y + 19 };
+      const k = document.createElement("div");
+      k.className = "key" + (ch === ";" ? " ghost-key" : "");
+      k.textContent = ch;
+      k.style.left = x + "px"; k.style.top = y + "px";
+      k.dataset.ch = ch;
+      guide.appendChild(k);
+    });
+  });
+
+  // palms: one ghost oval per hand, below the keyboard
+  [["s","d"],["k","l"]].forEach(([a, b]) => {
+    const cx = (keyPos[a].x + keyPos[b].x) / 2;
+    const p = document.createElement("div");
+    p.className = "palm";
+    p.style.width = "96px"; p.style.height = "64px";
+    p.style.left = (cx - 48) + "px"; p.style.top = "138px";
+    guide.appendChild(p);
+  });
+
+  // fingers: capsules with tips resting on their home keys
+  Object.entries(FINGER_HOMES).forEach(([f, home]) => {
+    const fin = document.createElement("div");
+    fin.className = "finger";
+    fin.style.height = FINGER_LEN[f] + "px";
+    fin.style.left = (keyPos[home].x - 9) + "px";
+    fin.style.top = (keyPos[home].y - 12) + "px";
+    guide.appendChild(fin);
+    fingerEls[f] = { el: fin, home };
+  });
+
+  function updateGuide(letter) {
+    guide.querySelectorAll(".key.target").forEach(k => k.classList.remove("target"));
+    Object.values(fingerEls).forEach(({ el }) => { el.style.transform = ""; el.classList.remove("active"); });
+    if (!guideOn || !letter || !LETTER_FINGER[letter]) return;
+    const keyEl = guide.querySelector(`.key[data-ch="${letter}"]`);
+    if (keyEl) keyEl.classList.add("target");
+    const { el: fin, home } = fingerEls[LETTER_FINGER[letter]];
+    const dx = keyPos[letter].x - keyPos[home].x;
+    const dy = keyPos[letter].y - keyPos[home].y;
+    fin.style.transform = `translate(${dx}px, ${dy}px)`;  // finger reaches from home to target
+    fin.classList.add("active");
+  }
+
+  const guideBtn = $("guide-toggle");
+  guideBtn.addEventListener("click", () => {
+    guideOn = !guideOn;
+    guideBtn.textContent = guideOn ? "On" : "Off";
+    guideBtn.classList.toggle("active", guideOn);
+    guide.style.display = guideOn ? "block" : "none";
+    updateGuide(guideOn && !inputLocked ? target[typed] : null);
+  });
+
+  startCast();
+})();
+</script>
+</body>
+</html>

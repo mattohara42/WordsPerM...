@@ -1,0 +1,75 @@
+# Typing Fishing — v1 Build Plan
+
+Companion to `SPEC.md`. Each milestone is sized for roughly one Claude Code session and ends in a playable/verifiable state. Build in order — each milestone depends on the previous.
+
+## Repo setup (before first session)
+
+```
+typing-fishing/
+├── SPEC.md                  ← the design spec (source of truth)
+├── BUILD_PLAN.md            ← this file; check off milestones
+├── prototype/
+│   └── feel-prototype.html  ← Phase 2 prototype (reference for game feel, not code reuse)
+├── index.html
+├── app.js
+├── style.css
+└── data/
+    └── words.json           ← generated word pool (M2)
+```
+
+Same 3-file vanilla JS pattern as Family Hub, no build step, `python3 -m http.server 8080` locally, Netlify for deploy. Firestore config can follow Family Hub's setup.
+
+**Tech decision to make in M1, not before:** plain DOM/CSS (like the prototype) vs. canvas vs. Phaser 3. Recommendation: start DOM/CSS since the prototype proved it handles this game's needs; escalate only if pixel-art animation demands it.
+
+## Milestones
+
+### M1 — Core loop, ported and polished
+Port the prototype's cast → wait → reel → catch loop into the real app structure. Word-at-a-time pacing (~450ms pause), error-only tension meter, ghost-hands finger guide. Hardcoded word list is fine here.
+**Done when:** the full loop plays in the repo app at parity with the prototype.
+
+### M2 — Word pool
+**Head start: `generate-words.mjs` and a generated `words.json` (3,014 words) already exist — built and validated during design.** Filters a frequency list against a real dictionary, blocklists junk, supplements home row, tags each word with `letters`/`difficulty`/`theme`. Stage coverage verified: 37 home-row words at stage 1, growing to 167 by stage 2 — so keep stage 1 short (few fish to first unlock). This milestone is now just: wire the game to load `words.json` and filter by an unlocked-letter set (hardcode home row for now).
+**Done when:** the game only ever serves words typeable with the configured letter set.
+
+### M3 — Fish, rarity, coins
+Define ~8–10 fish across 3 rarity tiers. Rarity maps to word difficulty. Catches award coins. Pixel-art placeholder sprites — source from Kenney.nl (CC0) or itch.io cozy fishing packs; prefer packs sharing one palette. Kid-drawn fish are a legitimate asset pipeline.
+**Done when:** rare fish demand harder words and the coin balance persists across a session.
+
+### M4 — Profiles (Firestore)
+Profile picker on launch. Per-kid: unlocked letters, coins, collection, upgrades, accuracy/timing stats (logged silently — feeds v2 adaptive meter). Reuse Family Hub Firestore patterns.
+**Done when:** two profiles maintain fully separate state across reloads.
+
+### M5 — Letter unlock progression
+Fish-count milestones unlock new letters in a configured order. Celebration moment on unlock ("new letter!"). Word pool filter updates live.
+**Done when:** a fresh profile starts home-row-only and visibly expands its letter set through play.
+
+### M6 — Collection screen
+Grid of all fish; uncaught ones as silhouettes. Per-profile.
+**Done when:** catching a new species flips its silhouette.
+
+### M7 — Shop: rods & bait
+2–3 rods (bite rate / rare odds), 2–3 baits. Simple shop screen, coin spend, effects actually applied.
+**Done when:** an upgraded rod measurably changes bite behavior.
+
+### M7.5 — Juice pass (visual polish)
+One dedicated milestone, done against real gameplay rather than sprinkled through earlier work:
+- Locked ~16-color palette (pick from lospec.com) applied to all assets **and** UI
+- Layered parallax water (3–4 translucent layers, different drift speeds) + ripples
+- Catch/bite juice: splash particles, fish arc on landing, floating "+coins" text, subtle screen shake on bite
+- Idle life: boat bobbing, occasional fish shadows, day/night tint cycle (CSS filter)
+**Done when:** a stranger watching 10 seconds of idle gameplay says it looks cozy.
+
+### M8 — Ship it
+Netlify deploy, kid playtest, tune `CFG` values (words-per-fish, tension penalties, pause length) based on real beginner typing.
+**Done when:** a kid lands a fish unassisted and asks to play again.
+
+## Session tips (learned from Family Hub)
+
+- Start each Claude Code session by pointing it at `SPEC.md` and the current milestone.
+- Keep a `BACKLOG.md` for ideas that come up mid-build — don't let them expand the current milestone.
+- Test locally via ngrok only when OAuth/HTTPS matters (M4 onward); plain http.server before that.
+- Tuning values stay in one `CFG` object, same as the prototype.
+
+## Explicitly deferred (see SPEC.md v2 list)
+
+Adaptive tension meter · themed word packs · custom word lists · more ponds · sound design beyond ambient loop

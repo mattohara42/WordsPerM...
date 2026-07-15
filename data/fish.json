@@ -1,0 +1,12 @@
+[
+  {"id": "bluegill",   "name": "Sunny Gill",        "species": "Bluegill",          "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#8fbf88", "blurb": "Always smiling. Has no idea why."},
+  {"id": "perch",      "name": "Perch-ance",        "species": "Yellow Perch",      "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#c9b458", "blurb": "To dream? No — to snack."},
+  {"id": "minnow",     "name": "Minnie Minnow",     "species": "Fathead Minnow",    "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#9db4b8", "blurb": "Small fish, big pond, no complaints."},
+  {"id": "pumpkinseed","name": "Pun-kinseed",       "species": "Pumpkinseed",       "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#e8a45b", "blurb": "The most gourd-geous fish in the pond."},
+  {"id": "carp",       "name": "Carp Diem",         "species": "Common Carp",       "tier": "uncommon",  "difficulty": 2, "coins": 3,  "color": "#b08a5f", "blurb": "Seizes the day. And the bait. Mostly the bait."},
+  {"id": "bass",       "name": "Bass-ically Famous","species": "Largemouth Bass",   "tier": "uncommon",  "difficulty": 2, "coins": 3,  "color": "#6e9c68", "blurb": "Been on three magazine covers. Mentions it constantly."},
+  {"id": "trout",      "name": "Sir Trout-a-Lot",   "species": "Brook Trout",       "tier": "uncommon",  "difficulty": 2, "coins": 3,  "color": "#c96a83", "blurb": "Knighted for services to swimming upstream."},
+  {"id": "pike",       "name": "The Duke of Pike",  "species": "Northern Pike",     "tier": "rare",      "difficulty": 3, "coins": 8,  "color": "#4a7a96", "blurb": "Old money. Older teeth."},
+  {"id": "walleye",    "name": "Walter the Legend", "species": "Walleye",           "tier": "rare",      "difficulty": 3, "coins": 8,  "color": "#f0c060", "blurb": "Every pond has a Walter. This one's ours."},
+  {"id": "muskie",     "name": "Muskie Quixote",    "species": "Muskellunge",       "tier": "legendary", "difficulty": 4, "coins": 20, "color": "#d4c5f0", "blurb": "Tilting at bobbers since forever. The fish of ten thousand casts."}
+]
