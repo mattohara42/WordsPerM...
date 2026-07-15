@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Typing Fishing</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎣</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>TYPING FISHING</h1>
+
+  <div id="scene">
+    <div id="sky">
+      <div id="sun"></div>
+      <div class="cloud" style="top:14%; width:90px; animation-duration:70s;"></div>
+      <div class="cloud" style="top:26%; width:60px; animation-duration:95s; animation-delay:-40s;"></div>
+    </div>
+    <div class="hills" id="hills-far"></div>
+    <div class="hills" id="hills-near"></div>
+    <div id="water">
+      <div id="glitter"></div>
+      <div class="wave" id="wave1"><svg viewBox="0 0 1440 42" preserveAspectRatio="none"><path d="M0 22 Q 60 8 120 22 T 240 22 T 360 22 T 480 22 T 600 22 T 720 22 T 840 22 T 960 22 T 1080 22 T 1200 22 T 1320 22 T 1440 22 V42 H0 Z" fill="rgba(207,232,221,0.5)"/></svg></div>
+      <div class="wave" id="wave2"><svg viewBox="0 0 1440 42" preserveAspectRatio="none"><path d="M0 24 Q 80 10 160 24 T 320 24 T 480 24 T 640 24 T 800 24 T 960 24 T 1120 24 T 1280 24 T 1440 24 V42 H0 Z" fill="rgba(63,125,140,0.9)"/></svg></div>
+      <div class="wave" id="wave3"><svg viewBox="0 0 1440 42" preserveAspectRatio="none"><path d="M0 26 Q 110 14 220 26 T 440 26 T 660 26 T 880 26 T 1100 26 T 1320 26 T 1440 26 V42 H0 Z" fill="rgba(28,58,77,0.9)"/></svg></div>
+    </div>
+    <div id="rig">
+      <div id="boat"></div>
+      <div id="kid"></div>
+      <div id="rod"></div>
+      <div id="line"></div>
+    </div>
+    <div id="fish"></div>
+    <div id="status" aria-live="polite"></div>
+    <div id="word"></div>
+    <div id="meter"><div id="meter-fill"></div></div>
+    <div id="tint"></div>
+  </div>
+
+  <div id="hud">
+    <span class="chip">CAUGHT <b id="caught">0</b></span>
+    <span class="chip">ESCAPED <b id="escaped">0</b></span>
+    <span class="chip">REEL <b id="dist">—</b></span>
+  </div>
+
+  <div id="controls">
+    <span>Fingers:</span>
+    <button class="toggle-btn active" id="guide-toggle">ON</button>
+  </div>
+
+  <div id="guide"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

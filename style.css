@@ -1,0 +1,225 @@
+/* style.css — Typing Fishing. Dusk pond palette from prototype/visual-mockup.html. */
+
+:root {
+  /* Dusk pond palette — locked, everything derives from these */
+  --dusk-peach: #f5b78a;
+  --ember:      #e8846b;
+  --rose-dusk:  #c96a83;
+  --plum:       #6b4a72;
+  --deep-plum:  #452b52;
+  --water-teal: #3f7d8c;
+  --water-mid:  #2c5a6e;
+  --water-deep: #1c3a4d;
+  --abyss:      #122736;
+  --foam:       #cfe8dd;
+  --gold:       #f0c060;
+  --moss:       #8fbf88;
+  --ink:        #f2ede3;
+  --dim:        #9db4b8;
+  --display: "Silkscreen", ui-monospace, monospace;
+  --mono: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--mono);
+  background: var(--abyss);
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 20px 14px;
+}
+h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color: var(--dim); }
+
+/* ============ THE POND ============ */
+#scene {
+  position: relative;
+  width: min(720px, 100%);
+  height: 360px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+}
+#scene.shake { animation: shake 0.3s; }
+@keyframes shake {
+  20% { transform: translate(-5px, 2px); } 40% { transform: translate(4px, -2px); }
+  60% { transform: translate(-3px, 1px); } 80% { transform: translate(2px, -1px); }
+}
+
+#sky {
+  position: absolute; inset: 0 0 45% 0;
+  background: linear-gradient(180deg, var(--dusk-peach) 0%, var(--ember) 55%, var(--rose-dusk) 100%);
+}
+#sun {
+  position: absolute; left: 62%; top: 26%; width: 54px; height: 54px;
+  background: var(--gold); border-radius: 50%;
+  box-shadow: 0 0 34px 10px rgba(240,192,96,0.55);
+}
+.cloud {
+  position: absolute; height: 16px; border-radius: 8px;
+  background: rgba(245,183,138,0.55); filter: blur(3px);
+  animation: drift linear infinite;
+}
+@keyframes drift { from { transform: translateX(-140px); } to { transform: translateX(760px); } }
+
+.hills { position: absolute; left: -2%; width: 104%; height: 30%; }
+#hills-far {
+  top: 30%; background: var(--plum);
+  clip-path: polygon(0 70%, 10% 45%, 22% 62%, 36% 38%, 52% 60%, 66% 42%, 80% 58%, 92% 46%, 100% 60%, 100% 100%, 0 100%);
+}
+#hills-near {
+  top: 37%; background: var(--deep-plum);
+  clip-path: polygon(0 60%, 14% 78%, 26% 52%, 40% 72%, 55% 50%, 70% 70%, 84% 54%, 100% 72%, 100% 100%, 0 100%);
+}
+
+#water {
+  position: absolute; left: 0; right: 0; top: 52%; bottom: 0;
+  background: linear-gradient(180deg, var(--water-teal) 0%, var(--water-mid) 45%, var(--water-deep) 80%, var(--abyss) 100%);
+}
+.wave { position: absolute; left: 0; width: 200%; height: 42px; opacity: 0.5; }
+.wave svg { width: 100%; height: 100%; display: block; }
+#wave1 { top: -6px;  animation: waveSlide 14s linear infinite; }
+#wave2 { top: 26px;  animation: waveSlide 22s linear infinite reverse; opacity: 0.35; }
+#wave3 { top: 64px;  animation: waveSlide 34s linear infinite; opacity: 0.22; }
+@keyframes waveSlide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+#glitter {
+  position: absolute; left: 58%; top: 0; width: 90px; height: 60%;
+  background: repeating-linear-gradient(180deg,
+    rgba(240,192,96,0.35) 0 3px, transparent 3px 11px);
+  filter: blur(1px);
+  animation: glitterShift 3.5s ease-in-out infinite alternate;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.8), transparent);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.8), transparent);
+}
+@keyframes glitterShift { from { transform: translateX(-6px); opacity: 0.7; } to { transform: translateX(6px); opacity: 1; } }
+
+.fish-shadow {
+  position: absolute; height: 12px; border-radius: 50%;
+  background: rgba(10,25,35,0.5); filter: blur(3px);
+  animation: shadowDrift linear forwards;
+}
+@keyframes shadowDrift { from { transform: translateX(0); } to { transform: translateX(820px); } }
+
+/* boat rig bobs as one unit */
+#rig { position: absolute; left: 26px; top: 88px; animation: bob 4.5s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(4px) rotate(0.8deg); } }
+#boat { width: 88px; height: 26px; background: var(--deep-plum); border-radius: 4px 16px 8px 8px; }
+#boat::after { content:""; position:absolute; left:6px; top:20px; width:76px; height:6px; background: rgba(10,25,35,0.4); border-radius: 4px; filter: blur(2px); }
+#kid { position: absolute; left: 18px; top: -22px; width: 16px; height: 24px; background: var(--gold); border-radius: 5px 5px 2px 2px; }
+#rod { position: absolute; left: 32px; top: -30px; width: 40px; height: 3px; background: var(--deep-plum); transform: rotate(-24deg); border-radius: 2px; }
+#line {
+  position: absolute; left: 70px; top: -20px; height: 2px; width: 0;
+  background: rgba(242,237,227,0.6);
+  transform-origin: left center; transform: rotate(24deg);
+  transition: width 0.4s ease;
+}
+
+/* fish color follows rarity tier */
+#fish {
+  position: absolute; top: 250px; width: 56px; height: 26px; background: var(--moss);
+  border-radius: 12px 4px 4px 12px; opacity: 0;
+  transition: left 0.35s ease, opacity 0.3s ease, top 0.35s ease;
+}
+#fish::after { content:""; position:absolute; right:-12px; top:4px; border:9px solid transparent; border-left:14px solid var(--moss); }
+#fish::before { content:""; position:absolute; left:10px; top:8px; width:5px; height:5px; border-radius:50%; background: var(--abyss); }
+#fish.tier-uncommon { background: var(--rose-dusk); }
+#fish.tier-uncommon::after { border-left-color: var(--rose-dusk); }
+#fish.tier-rare { background: var(--gold); box-shadow: 0 0 14px rgba(240,192,96,0.7); }
+#fish.tier-rare::after { border-left-color: var(--gold); }
+#fish.tier-legendary { background: var(--gold); box-shadow: 0 0 22px 6px rgba(240,192,96,0.9); }
+#fish.tier-legendary::after { border-left-color: var(--gold); }
+#fish.landing { animation: fishArc 0.7s ease forwards; }
+@keyframes fishArc {
+  40% { transform: translate(-30px, -90px) rotate(-30deg); }
+  100% { transform: translate(-60px, -40px) rotate(-70deg); opacity: 0; }
+}
+
+/* particles */
+.p {
+  position: absolute; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--foam); pointer-events: none;
+  animation: splash 0.65s ease-out forwards;
+}
+@keyframes splash {
+  to { transform: translate(var(--dx), var(--dy)) scale(0.1); opacity: 0; }
+}
+
+/* UI living inside the pond */
+#status {
+  position: absolute; top: 12px; left: 0; right: 0; text-align: center;
+  font-family: var(--display); font-size: 11px; color: var(--ink);
+  text-shadow: 0 2px 8px rgba(20,30,40,0.8); letter-spacing: 0.06em;
+}
+#word {
+  position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%);
+  font-size: 36px; letter-spacing: 0.14em; min-width: 120px; min-height: 54px;
+  padding: 4px 22px; border-radius: 27px; text-align: center;
+  background: rgba(12,26,38,0.5);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+#word .done { color: var(--moss); }
+#word .todo { color: var(--ink); }
+#word.shakeword { animation: shakeword 0.16s; }
+@keyframes shakeword { 25% { transform: translateX(calc(-50% - 6px)); } 75% { transform: translateX(calc(-50% + 6px)); } }
+#word:empty { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+/* tension = the bottom edge of the pond itself */
+#meter { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: rgba(0,0,0,0.4); }
+#meter-fill { height: 100%; width: 0%; background: var(--moss); transition: width 0.15s, background 0.15s; }
+
+#tint {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, #16213f 0%, #0d1b33 100%);
+  mix-blend-mode: multiply; opacity: 0;
+  animation: nightcycle 90s ease-in-out infinite;
+}
+@keyframes nightcycle {
+  0%, 34% { opacity: 0; } 50%, 72% { opacity: 0.55; } 88%, 100% { opacity: 0; }
+}
+
+/* ============ BELOW THE POND ============ */
+#hud { display: flex; gap: 12px; margin-top: 14px; }
+.chip {
+  font-family: var(--display); font-size: 11px; color: var(--dim);
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+  padding: 7px 14px; border-radius: 8px;
+}
+.chip b { color: var(--ink); font-size: 14px; }
+
+#controls { display: flex; gap: 10px; align-items: center; margin-top: 12px; font-size: 12px; color: var(--dim); }
+.toggle-btn {
+  font-family: var(--display); font-size: 10px; color: var(--dim);
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px; padding: 6px 12px; cursor: pointer;
+}
+.toggle-btn.active { color: var(--abyss); background: var(--gold); border-color: var(--gold); }
+.toggle-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* ============ FINGER GUIDE ============ */
+#guide { position: relative; width: 430px; height: 208px; margin-top: 16px; max-width: 100%; }
+.key {
+  position: absolute; width: 38px; height: 38px;
+  border: 1px solid rgba(157,180,184,0.25); border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--dim); background: rgba(18,39,54,0.6);
+}
+.key.ghost-key { opacity: 0.35; }
+.key.target { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 10px rgba(240,192,96,0.45); }
+.finger {
+  position: absolute; width: 18px;
+  border: 1.5px solid rgba(242,237,227,0.28); background: rgba(242,237,227,0.05);
+  border-radius: 9px; pointer-events: none;
+  transition: transform 0.18s ease, border-color 0.18s, background 0.18s;
+}
+.finger.active { border-color: var(--gold); background: rgba(240,192,96,0.16); }
+.palm {
+  position: absolute; border: 1.5px solid rgba(242,237,227,0.18);
+  background: rgba(242,237,227,0.03); border-radius: 50%; pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wave, #rig, .cloud, #glitter, #tint { animation: none !important; }
+  .finger, #line, #fish { transition: none; }
+  #scene.shake, #word.shakeword { animation: none; }
+}
