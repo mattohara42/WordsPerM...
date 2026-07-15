@@ -51,7 +51,7 @@ Grid of all fish; uncaught ones as silhouettes. Per-profile.
 2–3 rods (bite rate / rare odds), 2–3 baits. Simple shop screen, coin spend, effects actually applied.
 **Done when:** an upgraded rod measurably changes bite behavior.
 
-### M7.5 — Juice pass (visual polish)
+### ✅ M7.5 — Juice pass (visual polish) (done 2026-07-15)
 One dedicated milestone, done against real gameplay rather than sprinkled through earlier work:
 - Locked ~16-color palette (pick from lospec.com) applied to all assets **and** UI
 - Layered parallax water (3–4 translucent layers, different drift speeds) + ripples

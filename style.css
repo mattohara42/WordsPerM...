@@ -1,4 +1,7 @@
-/* style.css — Typing Fishing. Dusk pond palette from prototype/visual-mockup.html. */
+/* style.css — Typing Fishing.
+   LOCKED PALETTE (M7.5): every UI color below or derived from it via
+   color-mix/alpha. Fish accent colors live in data/fish.json and were
+   chosen against this palette — new art must stick to these hues. */
 
 :root {
   /* Dusk pond palette — locked, everything derives from these */
@@ -81,6 +84,7 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
 #wave1 { top: -6px;  animation: waveSlide 14s linear infinite; }
 #wave2 { top: 26px;  animation: waveSlide 22s linear infinite reverse; opacity: 0.35; }
 #wave3 { top: 64px;  animation: waveSlide 34s linear infinite; opacity: 0.22; }
+#wave4 { top: 106px; animation: waveSlide 48s linear infinite reverse; opacity: 0.15; }
 @keyframes waveSlide { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 #glitter {
@@ -114,6 +118,45 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
   transform-origin: left center; transform: rotate(24deg);
   transition: width 0.4s ease;
 }
+
+/* bobber floats where the line meets the water during the wait */
+#bobber {
+  position: absolute; left: 388px; top: 190px; width: 11px; height: 11px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--ember) 0 50%, var(--foam) 50% 100%);
+  opacity: 0; transition: opacity 0.3s;
+  animation: bobberBob 3s ease-in-out infinite;
+}
+#bobber.on { opacity: 1; }
+#bobber.plunge { animation: plunge 0.35s ease-in forwards; }
+@keyframes bobberBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+@keyframes plunge { to { transform: translateY(14px); opacity: 0; } }
+
+/* expanding ripple rings on the water */
+.ripple {
+  position: absolute; width: 8px; height: 8px;
+  border: 1.5px solid rgba(207,232,221,0.45); border-radius: 50%;
+  transform: translate(-50%, -50%); pointer-events: none;
+  animation: rippleGrow 1.6s ease-out forwards;
+}
+@keyframes rippleGrow {
+  from { opacity: 0.7; width: 8px; height: 8px; }
+  to   { opacity: 0;   width: 64px; height: 26px; }
+}
+
+/* foreground reeds sway at the pond edges */
+.reeds { position: absolute; bottom: 8px; display: flex; gap: 7px; align-items: flex-end; pointer-events: none; }
+#reeds-left { left: 12px; }
+#reeds-right { right: 16px; }
+.reed {
+  width: 5px; border-radius: 3px 3px 0 0;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--moss) 40%, var(--water-deep)) 0%,
+    var(--water-deep) 95%);
+  transform-origin: bottom center;
+  animation: sway ease-in-out infinite alternate;
+}
+@keyframes sway { from { transform: rotate(-2.4deg); } to { transform: rotate(2.6deg); } }
 
 /* fish body color comes from data/fish.json via --fish-color;
    rarer tiers add glow (placeholder shapes until real sprites land) */
@@ -166,6 +209,8 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
 #word .todo { color: var(--ink); }
 #word.shakeword { animation: shakeword 0.16s; }
 @keyframes shakeword { 25% { transform: translateX(calc(-50% - 6px)); } 75% { transform: translateX(calc(-50% + 6px)); } }
+#word.pop { animation: wordpop 0.22s ease; }
+@keyframes wordpop { 40% { transform: translateX(-50%) scale(1.07); } }
 #word:empty { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
 
 /* the "new letters!" celebration banner */
@@ -183,6 +228,8 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
 /* tension = the bottom edge of the pond itself */
 #meter { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: rgba(0,0,0,0.4); }
 #meter-fill { height: 100%; width: 0%; background: var(--moss); transition: width 0.15s, background 0.15s; }
+#meter-fill.danger { animation: meterpulse 0.45s ease-in-out infinite alternate; }
+@keyframes meterpulse { from { filter: brightness(1); } to { filter: brightness(1.6); } }
 
 #tint {
   position: absolute; inset: 0; pointer-events: none;
@@ -298,7 +345,8 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
 .shop-btn.equipped { color: var(--abyss); background: var(--moss); border-color: var(--moss); }
 
 @media (prefers-reduced-motion: reduce) {
-  .wave, #rig, .cloud, #glitter, #tint { animation: none !important; }
+  .wave, #rig, .cloud, #glitter, #tint, .reed, #bobber, #meter-fill.danger { animation: none !important; }
   .finger, #line, #fish { transition: none; }
-  #scene.shake, #word.shakeword, #unlock-banner.show, .key.fresh { animation: none; }
+  #scene.shake, #word.shakeword, #word.pop, #unlock-banner.show, .key.fresh { animation: none; }
+  .ripple, .p, .coinfloat { display: none; }
 }

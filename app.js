@@ -91,7 +91,7 @@ let inputLocked = false;
 const $ = id => document.getElementById(id);
 const el = { scene: $("scene"), word: $("word"), status: $("status"), fill: $("meter-fill"),
              caught: $("caught"), escaped: $("escaped"), coins: $("coins"), dist: $("dist"),
-             line: $("line"), fish: $("fish"), water: $("water") };
+             line: $("line"), fish: $("fish"), water: $("water"), bobber: $("bobber") };
 
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -130,6 +130,17 @@ function burst(x, y, n) {
     setTimeout(() => p.remove(), 700);
   }
 }
+// visual-cadence constants (rendering only — gameplay tuning stays in config.js)
+const JUICE = { shadowEveryMs: 6000, bobberRippleMs: 1700, ambientRippleMs: 6500, rippleLifeMs: 1700 };
+
+function ripple(x, y) {
+  const r = document.createElement("div");
+  r.className = "ripple";
+  r.style.left = x + "px"; r.style.top = y + "px";
+  el.scene.appendChild(r);
+  setTimeout(() => r.remove(), JUICE.rippleLifeMs);
+}
+
 function coinFloat(x, y, amount) {
   const c = document.createElement("div");
   c.className = "coinfloat";
@@ -152,7 +163,32 @@ setInterval(() => {
   s.style.animationDuration = rand(16, 30) + "s";
   el.water.appendChild(s);
   setTimeout(() => s.remove(), 31000);
-}, 6000);
+}, JUICE.shadowEveryMs);
+
+// ambient ripples: the pond breathes even when nobody's fishing
+setInterval(() => {
+  if (document.hidden) return;
+  ripple(rand(80, 640), rand(230, 330));
+}, JUICE.ambientRippleMs);
+
+// bobber ripples while the line waits for a bite
+let bobberRippleTimer = null;
+function bobberIn() {
+  el.bobber.classList.remove("plunge");
+  el.bobber.classList.add("on");
+  ripple(394, 196); // splash-in ring, then the idle rhythm
+  bobberRippleTimer = setInterval(() => ripple(394, 196), JUICE.bobberRippleMs);
+}
+function bobberOut(plunge) {
+  clearInterval(bobberRippleTimer);
+  if (plunge) {
+    el.bobber.classList.add("plunge");
+    ripple(394, 196);
+    setTimeout(() => el.bobber.classList.remove("on", "plunge"), 400);
+  } else {
+    el.bobber.classList.remove("on", "plunge");
+  }
+}
 
 // ---- Rendering ----
 function renderWord() {
@@ -163,6 +199,7 @@ function renderWord() {
 function renderTension() {
   el.fill.style.width = tension + "%";
   el.fill.style.background = tension > 66 ? "var(--ember)" : tension > 33 ? "var(--gold)" : "var(--moss)";
+  el.fill.classList.toggle("danger", tension > 66);
 }
 function fishPosition() {
   const progress = 1 - wordsLeft / wordsToLand;
@@ -177,6 +214,7 @@ function startCast() {
   tension = 0; renderTension();
   el.dist.textContent = "—";
   el.line.style.width = "0px";
+  bobberOut(false);
   el.fish.style.opacity = 0;
   el.fish.className = "";
   el.fish.style.transform = "";
@@ -191,12 +229,14 @@ function startWait() {
   updateGuide(null);
   el.line.style.width = "330px";
   burst(400, 195, 5);
+  bobberIn();
   setStatus(pick(PUNS.wait));
   setTimeout(bite, rand(...CONFIG.bite.delayMsRange) * equippedBait().biteSpeedMult);
 }
 
 function bite() {
   phase = "reel"; inputLocked = false;
+  bobberOut(true);
   const tier = pickTier();
   fish = pick(FISH.filter(f => f.tier === tier));
   reelPool = buildReelPool(fish.difficulty);
@@ -220,6 +260,8 @@ function wordComplete() {
   el.dist.textContent = wordsLeft > 0 ? wordsLeft + " words" : "landing…";
   fishPosition();
   burst(parseInt(el.fish.style.left) + 28, 258, 4);
+  ripple(parseInt(el.fish.style.left) + 28, 262);
+  el.word.classList.remove("pop"); void el.word.offsetWidth; el.word.classList.add("pop");
   if (wordsLeft <= 0) return land(true);
   inputLocked = true;
   el.word.innerHTML = `<span class="done">${target}</span>`;
