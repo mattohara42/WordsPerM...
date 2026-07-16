@@ -11,7 +11,7 @@
 <body>
   <h1>TYPING FISHING</h1>
 
-  <div id="scene">
+  <div id="scene-viewport"><div id="scene-frame"><div id="scene">
     <div id="sky">
       <div id="sun"></div>
       <div class="cloud" style="top:14%; width:90px; animation-duration:70s;"></div>
@@ -33,7 +33,7 @@
       <div id="line"></div>
     </div>
     <div id="bobber"></div>
-    <div id="fish"></div>
+    <div id="fish"><div class="fish-tail"></div><div class="fish-fin"></div></div>
     <div class="reeds" id="reeds-left">
       <div class="reed" style="height:34px; animation-duration:4.2s;"></div>
       <div class="reed" style="height:48px; animation-duration:5.1s; animation-delay:-1.6s;"></div>
@@ -48,7 +48,7 @@
     <div id="unlock-banner"><div class="banner-title">NEW LETTERS UNLOCKED!</div><div class="letters"></div></div>
     <div id="meter"><div id="meter-fill"></div></div>
     <div id="tint"></div>
-  </div>
+  </div></div></div>
 
   <div id="hud">
     <span class="chip">CAUGHT <b id="caught">0</b></span>
@@ -68,7 +68,7 @@
     <button class="toggle-btn" id="switch-btn">SWITCH KID</button>
   </div>
 
-  <div id="guide"></div>
+  <div id="guide-panel"><div id="guide"></div></div>
 
   <div id="collection" class="overlay" hidden>
     <div class="overlay-panel">

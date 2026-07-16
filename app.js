@@ -258,6 +258,17 @@ const el = { scene: $("scene"), word: $("word"), status: $("status"), fill: $("m
              caught: $("caught"), escaped: $("escaped"), coins: $("coins"), dist: $("dist"),
              line: $("line"), fish: $("fish"), water: $("water"), bobber: $("bobber") };
 
+// scale the fixed 720x360 design-space canvas to cover the viewport (M9);
+// every pixel position in the game logic stays in that untouched coordinate
+// system, only #scene-frame's transform changes on resize
+const sceneFrame = $("scene-frame");
+function fitScene() {
+  const scale = Math.max(window.innerWidth / 720, window.innerHeight / 360);
+  sceneFrame.style.transform = `scale(${scale})`;
+}
+window.addEventListener("resize", fitScene);
+fitScene();
+
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const rand = (a, b) => a + Math.random() * (b - a);
 
@@ -443,8 +454,11 @@ function renderTension() {
   el.fill.classList.toggle("danger", tension > 66);
 }
 function fishPosition() {
+  // far-x kept inside the range that stays on-screen even on the narrowest
+  // common desktop aspect ratios under M9's cover-scaled scene (a spawn
+  // point out past ~500px design-x was landing off-screen on 16:10 windows)
   const progress = 1 - wordsLeft / wordsToLand;
-  el.fish.style.left = (600 - progress * 460) + "px";
+  el.fish.style.left = (470 - progress * 330) + "px";
 }
 function setStatus(t) { el.status.textContent = t; }
 
