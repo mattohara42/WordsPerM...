@@ -283,6 +283,82 @@ function buildReelPool(difficulty) {
   return pool;
 }
 
+// ---- Audio: procedural synth, no external asset files (M10) ----
+// Web Audio oscillators/filters generate everything — a water-drone ambient
+// bed plus short SFX blips/chimes. Avoids sourcing/licensing audio for a
+// family project and needs no new files, matching the no-build-step rule.
+// Volumes/timing are CFG knobs; note pitches are sound-design content, kept
+// here next to PUNS rather than in config.js.
+let actx = null, masterGain = null, sfxGain = null, musicGain = null, ambientNodes = null;
+let soundOn = localStorage.getItem("tf:soundOn") !== "off";   // on by default
+
+function ensureAudio() {
+  if (actx) return;
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  masterGain = actx.createGain();
+  masterGain.gain.value = soundOn ? CONFIG.audio.masterVolume : 0;
+  masterGain.connect(actx.destination);
+  sfxGain = actx.createGain(); sfxGain.gain.value = CONFIG.audio.sfxVolume; sfxGain.connect(masterGain);
+  musicGain = actx.createGain(); musicGain.gain.value = CONFIG.audio.musicVolume; musicGain.connect(masterGain);
+  startAmbient();
+}
+
+function setSoundOn(on) {
+  soundOn = on;
+  localStorage.setItem("tf:soundOn", on ? "on" : "off");
+  if (masterGain) {
+    masterGain.gain.setTargetAtTime(on ? CONFIG.audio.masterVolume : 0, actx.currentTime, 0.05);
+  }
+}
+
+// gentle water-drone ambient bed: two low sines (one slowly detuned by an
+// LFO) through a lowpass filter — runs continuously once started
+function startAmbient() {
+  if (ambientNodes || !actx) return;
+  const [f1, f2] = CONFIG.audio.ambientHz;
+  const osc1 = actx.createOscillator(); osc1.type = "sine"; osc1.frequency.value = f1;
+  const osc2 = actx.createOscillator(); osc2.type = "sine"; osc2.frequency.value = f2;
+  const lfo = actx.createOscillator(); lfo.type = "sine"; lfo.frequency.value = 0.08;
+  const lfoGain = actx.createGain(); lfoGain.gain.value = 4;
+  lfo.connect(lfoGain); lfoGain.connect(osc1.frequency);
+  const filt = actx.createBiquadFilter(); filt.type = "lowpass"; filt.frequency.value = 500;
+  osc1.connect(filt); osc2.connect(filt); filt.connect(musicGain);
+  osc1.start(); osc2.start(); lfo.start();
+  ambientNodes = { osc1, osc2, lfo };
+}
+
+// duck the ambient bed to silence while the tab is hidden, restore on return
+document.addEventListener("visibilitychange", () => {
+  if (!masterGain) return;
+  const target = document.hidden ? 0 : (soundOn ? CONFIG.audio.masterVolume : 0);
+  masterGain.gain.setTargetAtTime(target, actx.currentTime, CONFIG.audio.duckedVolumeMs / 1000);
+});
+
+// short synth blip/chime helper
+function tone(freq, { duration = 0.12, type = "sine", gain = 0.25, delay = 0 } = {}) {
+  if (!actx || !soundOn) return;
+  const t0 = actx.currentTime + delay;
+  const osc = actx.createOscillator(); osc.type = type; osc.frequency.value = freq;
+  const g = actx.createGain();
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.linearRampToValueAtTime(gain, t0 + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+  osc.connect(g); g.connect(sfxGain);
+  osc.start(t0); osc.stop(t0 + duration + 0.02);
+}
+function chime(freqs, opts = {}) {
+  freqs.forEach((f, i) => tone(f, { ...opts, delay: (opts.delay || 0) + i * (opts.step ?? 0.09) }));
+}
+
+function sfxSplash()   { tone(180, { duration: 0.18, type: "sine", gain: 0.2 }); }
+function sfxBite()     { chime([392, 587], { duration: 0.14, type: "square", gain: 0.22 }); }
+function sfxWrong()    { tone(140, { duration: 0.15, type: "sawtooth", gain: 0.15 }); }
+function sfxWordTick() { tone(880, { duration: 0.06, type: "sine", gain: 0.12 }); }
+function sfxCatch()    { chime([523, 659, 784, 1047], { duration: 0.18, step: 0.08, gain: 0.22 }); }
+function sfxRareCatch(){ chime([523, 659, 784, 988, 1319], { duration: 0.2, step: 0.07, gain: 0.24 }); }
+function sfxEscape()   { chime([392, 330, 262], { duration: 0.22, step: 0.1, type: "triangle", gain: 0.2 }); }
+function sfxUnlock()   { chime([523, 659, 784, 1047, 1319], { duration: 0.16, step: 0.06, gain: 0.24 }); }
+
 // ---- Juice ----
 function burst(x, y, n) {
   for (let i = 0; i < n; i++) {
@@ -418,6 +494,7 @@ function startWait() {
   updateGuide(null);
   el.line.style.width = "300px";
   burst(400, 195, 5);
+  sfxSplash();
   bobberIn();
   setStatus(pick(PUNS.wait));
   later(bite, rand(...CONFIG.bite.delayMsRange) * equippedBait().biteSpeedMult);
@@ -438,6 +515,7 @@ function bite() {
   el.dist.textContent = wordsLeft + " words";
   shakeScene();
   burst(410, 200, 10);
+  sfxBite();
   setStatus(pick(PUNS.bite));
   startSwim();
   setTimeout(() => el.fish.classList.remove("hooked"), 350);
@@ -452,6 +530,7 @@ function wordComplete() {
   fishPosition();
   burst(parseInt(el.fish.style.left) + 28, 258, 4);
   ripple(parseInt(el.fish.style.left) + 28, 262);
+  sfxWordTick();
   el.word.classList.remove("pop"); void el.word.offsetWidth; el.word.classList.add("pop");
   if (wordsLeft <= 0) return land(true);
   inputLocked = true;
@@ -478,6 +557,7 @@ function land(success) {
     el.caught.textContent = totalCatches();
     coinFloat(140, 200, amount);
     const isRare = fish.tier === "rare" || fish.tier === "legendary";
+    (isRare ? sfxRareCatch : sfxCatch)();
     const pun = isRare ? pick(PUNS.catchRare) : pick(PUNS.catchCommon);
     setStatus((firstCatch ? "NEW! " : "") + pun + " — " + fish.name);
     if (collectionOpen) renderCollection();
@@ -494,6 +574,7 @@ function land(success) {
     persistSave();                              // flush accumulated stats on escape
     el.escaped.textContent = save.stats.escapes;
     el.fish.style.left = "760px";
+    sfxEscape();
     setStatus(pick(PUNS.escape));
   }
   later(startCast, CONFIG.reel.recastDelayMs);
@@ -505,6 +586,7 @@ function showUnlock(letters) {
   banner.querySelector(".letters").textContent = letters.join(" ").toUpperCase();
   banner.classList.add("show");
   burst(360, 150, 16);
+  sfxUnlock();
   letters.forEach(l => {
     const k = guide.querySelector(`.key[data-ch="${l}"]`);
     if (k) k.classList.add("fresh");
@@ -549,6 +631,7 @@ document.addEventListener("keydown", (e) => {
     }
   } else {
     recordKey(expected, false);
+    sfxWrong();
     el.word.classList.remove("shakeword"); void el.word.offsetWidth; el.word.classList.add("shakeword");
     if (phase === "reel") {
       tension = Math.min(CONFIG.reel.escapeAt, tension + CONFIG.reel.errorTension);
@@ -639,6 +722,16 @@ guideBtn.addEventListener("click", () => {
   guideBtn.classList.toggle("active", guideOn);
   guide.style.display = guideOn ? "block" : "none";
   updateGuide(guideOn && !inputLocked ? target[typed] : null);
+});
+
+const soundBtn = $("sound-toggle");
+soundBtn.textContent = soundOn ? "ON" : "OFF";
+soundBtn.classList.toggle("active", soundOn);
+soundBtn.addEventListener("click", () => {
+  ensureAudio();
+  setSoundOn(!soundOn);
+  soundBtn.textContent = soundOn ? "ON" : "OFF";
+  soundBtn.classList.toggle("active", soundOn);
 });
 
 // ---- Collection screen (per-profile once M4 lands; one shared save for now) ----
@@ -835,6 +928,7 @@ syncBtn.addEventListener("click", () => { fb?.uid ? signOutSync() : signIn(); })
 function activateProfile(id) {
   const doc = readProfile(id);
   if (!doc) return;
+  ensureAudio();   // profile-pick click is the user gesture that unlocks audio
   save = doc;
   localStorage.setItem(ACTIVE_KEY, id);
   save.stats.sessionCount = (save.stats.sessionCount ?? 0) + 1;

@@ -84,6 +84,15 @@ UI-only pass, no new game logic:
 
 **Explicitly out of scope for M9:** multiple background scenes / levels — that's the existing "more ponds/locations" v2 item (see BACKLOG.md → World), a bigger scope decision (new backgrounds only, vs. new fish/mechanics per level) to be scoped on its own once M9 ships.
 
+### ✅ M10 — Audio (done 2026-07-16)
+Pulled forward from the SPEC.md v2 parking lot ("sound design beyond basic ambient loop") at the user's request, ahead of M9. Procedural Web Audio synth — no external asset files, so no licensing/sourcing needed and no new build step:
+- Water-drone ambient bed (two low sines + slow LFO detune through a lowpass filter), starts on the profile-pick click (the user gesture that unlocks AudioContext autoplay).
+- SFX: cast splash, bite chime, per-word tick while reeling, wrong-key buzz, catch/rare-catch fanfare, escape descent, letter-unlock fanfare.
+- `Sound: ON/OFF` toggle next to the finger-guide toggle; preference persisted in localStorage (global, not per-profile — not game state, so not synced to Firestore).
+- Ambient bed ducks to silent on tab-hidden, restores on return.
+- Volume levels + ambient base pitches live in `CONFIG.audio`; note/melody content lives in app.js next to `PUNS`, matching the existing tuning-vs-content split.
+**Done when:** sound plays after the first profile-pick click, the mute toggle silences everything, and no console errors surface across cast → wait → reel → catch/escape → unlock.
+
 ## Session tips (learned from Family Hub)
 
 - Start each Claude Code session by pointing it at `SPEC.md` and the current milestone.
