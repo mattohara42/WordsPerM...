@@ -105,8 +105,8 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
 }
 @keyframes shadowDrift { from { transform: translateX(0); } to { transform: translateX(820px); } }
 
-/* boat rig bobs as one unit */
-#rig { position: absolute; left: 26px; top: 88px; animation: bob 4.5s ease-in-out infinite; }
+/* boat rig bobs as one unit — sits at the waterline (#water starts at top: 52%) */
+#rig { position: absolute; left: 26px; top: 178px; animation: bob 4.5s ease-in-out infinite; }
 @keyframes bob { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(4px) rotate(0.8deg); } }
 #boat { width: 88px; height: 26px; background: var(--deep-plum); border-radius: 4px 16px 8px 8px; }
 #boat::after { content:""; position:absolute; left:6px; top:20px; width:76px; height:6px; background: rgba(10,25,35,0.4); border-radius: 4px; filter: blur(2px); }
