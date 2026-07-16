@@ -43,12 +43,16 @@
       <div class="reed" style="height:44px; animation-duration:4.8s; animation-delay:-2.2s;"></div>
       <div class="reed" style="height:30px; animation-duration:4.1s; animation-delay:-0.8s;"></div>
     </div>
-    <div id="status" aria-live="polite"></div>
-    <div id="word"></div>
-    <div id="unlock-banner"><div class="banner-title">NEW LETTERS UNLOCKED!</div><div class="letters"></div></div>
     <div id="meter"><div id="meter-fill"></div></div>
     <div id="tint"></div>
   </div></div></div>
+
+  <!-- text/UI moments live as fixed-size viewport overlays, not inside the
+       scaled #scene-frame canvas — scaling them up with the background art
+       made them huge enough to collide with the hud/guide overlays -->
+  <div id="status" aria-live="polite"></div>
+  <div id="word"></div>
+  <div id="unlock-banner"><div class="banner-title">NEW LETTERS UNLOCKED!</div><div class="letters"></div></div>
 
   <div id="hud">
     <span class="chip">CAUGHT <b id="caught">0</b></span>
