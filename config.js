@@ -67,7 +67,6 @@ export const CONFIG = {
     masterVolume: 0.6,
     musicVolume: 0.32,
     sfxVolume: 0.7,
-    ambientHz: [110, 146.83],   // A2 + D3 — the water-drone bed
     duckedVolumeMs: 400,        // fade time when tab hides/shows
   },
 

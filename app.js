@@ -322,20 +322,33 @@ function setSoundOn(on) {
   }
 }
 
-// gentle water-drone ambient bed: two low sines (one slowly detuned by an
-// LFO) through a lowpass filter — runs continuously once started
+// gentle water ambience: filtered noise, not tonal oscillators — flat sine
+// drones read as an unpleasant hum rather than water. A soft lowpass "body"
+// (like a distant whoosh) plus a bandpass "shimmer" layer whose center
+// frequency slowly sweeps via an LFO (like sunlight glinting on ripples).
 function startAmbient() {
   if (ambientNodes || !actx) return;
-  const [f1, f2] = CONFIG.audio.ambientHz;
-  const osc1 = actx.createOscillator(); osc1.type = "sine"; osc1.frequency.value = f1;
-  const osc2 = actx.createOscillator(); osc2.type = "sine"; osc2.frequency.value = f2;
-  const lfo = actx.createOscillator(); lfo.type = "sine"; lfo.frequency.value = 0.08;
-  const lfoGain = actx.createGain(); lfoGain.gain.value = 4;
-  lfo.connect(lfoGain); lfoGain.connect(osc1.frequency);
-  const filt = actx.createBiquadFilter(); filt.type = "lowpass"; filt.frequency.value = 500;
-  osc1.connect(filt); osc2.connect(filt); filt.connect(musicGain);
-  osc1.start(); osc2.start(); lfo.start();
-  ambientNodes = { osc1, osc2, lfo };
+  const bufferSize = actx.sampleRate * 2;
+  const buffer = actx.createBuffer(1, bufferSize, actx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+  const noise = actx.createBufferSource();
+  noise.buffer = buffer; noise.loop = true;
+
+  const body = actx.createBiquadFilter(); body.type = "lowpass"; body.frequency.value = 340;
+  const bodyGain = actx.createGain(); bodyGain.gain.value = 0.55;
+
+  const shimmer = actx.createBiquadFilter(); shimmer.type = "bandpass";
+  shimmer.frequency.value = 1100; shimmer.Q.value = 0.7;
+  const shimmerGain = actx.createGain(); shimmerGain.gain.value = 0.3;
+  const lfo = actx.createOscillator(); lfo.type = "sine"; lfo.frequency.value = 0.06;
+  const lfoGain = actx.createGain(); lfoGain.gain.value = 350;
+  lfo.connect(lfoGain); lfoGain.connect(shimmer.frequency);
+
+  noise.connect(body); body.connect(bodyGain); bodyGain.connect(musicGain);
+  noise.connect(shimmer); shimmer.connect(shimmerGain); shimmerGain.connect(musicGain);
+  noise.start(); lfo.start();
+  ambientNodes = { noise, lfo };
 }
 
 // duck the ambient bed to silence while the tab is hidden, restore on return
