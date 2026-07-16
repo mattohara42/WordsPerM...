@@ -251,7 +251,9 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
 .chip b { color: var(--ink); font-size: 14px; }
 .chip.coins b { color: var(--gold); }
 
-#controls { display: flex; gap: 10px; align-items: center; margin-top: 12px; font-size: 12px; color: var(--dim); }
+#controls { display: flex; gap: 10px; align-items: center; margin-top: 12px; font-size: 12px; color: var(--dim); flex-wrap: wrap; justify-content: center; }
+#who { font-family: var(--display); font-size: 11px; color: var(--ink); margin-right: 4px; }
+#who:empty { display: none; }
 .toggle-btn {
   font-family: var(--display); font-size: 10px; color: var(--dim);
   background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
@@ -325,6 +327,44 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
 .cname { font-family: var(--display); font-size: 10px; color: var(--ink); min-height: 24px; }
 .cell.unknown .cname { color: var(--dim); }
 .csub { font-size: 10px; color: var(--dim); margin-top: 2px; }
+
+/* ============ PROFILE PICKER ============ */
+#profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 6px; }
+.profile-cell {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  width: 128px; padding: 16px 8px; border-radius: 12px; cursor: pointer;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+  font-family: var(--mono); color: var(--ink);
+}
+.profile-cell:hover { border-color: rgba(240,192,96,0.5); background: rgba(240,192,96,0.06); }
+.profile-cell:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.pavatar { font-size: 34px; line-height: 1; }
+.pname { font-family: var(--display); font-size: 11px; }
+.pmeta { font-size: 10px; color: var(--dim); }
+.profile-cell.add { color: var(--dim); border-style: dashed; justify-content: center; }
+.profile-cell.add .pavatar { color: var(--dim); }
+.pdelete {
+  position: absolute; top: 5px; right: 7px; font-size: 11px; color: var(--dim);
+  opacity: 0; transition: opacity 0.15s; line-height: 1;
+}
+.profile-cell:hover .pdelete { opacity: 0.7; }
+.pdelete:hover { color: var(--ember); opacity: 1; }
+#profile-new { margin-top: 12px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+#profile-new[hidden] { display: none; }   /* ID specificity beats [hidden]; restore it */
+#profile-name {
+  font-family: var(--mono); font-size: 17px; text-align: center; padding: 9px 14px;
+  border-radius: 8px; border: 1px solid rgba(255,255,255,0.22);
+  background: rgba(0,0,0,0.28); color: var(--ink); width: 200px;
+}
+#profile-name:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+#avatar-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 300px; }
+.avatar-opt {
+  font-size: 22px; padding: 4px 6px; border-radius: 8px; cursor: pointer;
+  background: transparent; border: 1px solid transparent; line-height: 1;
+}
+.avatar-opt.sel { border-color: var(--gold); background: rgba(240,192,96,0.15); }
+.avatar-opt:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.profile-actions { display: flex; gap: 8px; }
 
 /* ============ SHOP ============ */
 #shop-coins { font-family: var(--display); font-size: 11px; color: var(--dim); margin-bottom: 10px; }

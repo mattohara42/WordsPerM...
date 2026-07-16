@@ -14,18 +14,95 @@ async function loadJson(path) {
   return res.json();
 }
 
-// ---- Save (localStorage until M4 brings per-kid profiles) ----
-const SAVE_KEY = "typing-fishing-save";
-const DEFAULT_GEAR = { rod: "stick", bait: "worm", owned: { rod: ["stick"], bait: ["worm"] } };
-let save = { coins: 0, caught: {}, gear: DEFAULT_GEAR };
-try { save = { coins: 0, caught: {}, gear: DEFAULT_GEAR, ...JSON.parse(localStorage.getItem(SAVE_KEY) ?? "{}") }; } catch { /* fresh save */ }
-function persistSave() { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); }
+// ---- Profiles (localStorage mirror; M4b layers Firestore sync on top) ----
+// One document per kid, shaped per FIRESTORE.md. localStorage keys:
+//   tf:profile:{id} — the save document (which IS the offline save file)
+//   tf:profiles     — lightweight index for the picker [{id,name,avatar,updatedAt}]
+//   tf:active       — last-picked profile id
+// All reads/writes funnel through here so M4b can add Firestore in one place.
+const AVATARS = ["🐸", "🐟", "🐠", "🦆", "🐢", "🦖", "🐙", "🦈", "⭐", "🍀", "🐳", "🦑"];
+const PROFILE_KEY = id => "tf:profile:" + id;
+const INDEX_KEY = "tf:profiles";
+const ACTIVE_KEY = "tf:active";
+const LEGACY_KEY = "typing-fishing-save";
 
-function equippedRod()  { return CONFIG.shop.rods.find(r => r.id === save.gear.rod); }
-function equippedBait() { return CONFIG.shop.baits.find(b => b.id === save.gear.bait); }
+let save = null;   // the active profile document, or null before one is picked
+
+function blankProfile(name, avatar) {
+  const now = Date.now();
+  return {
+    id: "p" + now.toString(36) + Math.random().toString(36).slice(2, 6),
+    name, avatar,
+    createdAt: now, updatedAt: now,
+    totalCatches: 0, stage: 1, coins: 0,
+    // upgrades carries owned lists too (FIRESTORE.md shows equipped only; the
+    // shop needs to know what's already bought so it can't be re-purchased)
+    upgrades: { rod: "stick", bait: "worm", owned: { rod: ["stick"], bait: ["worm"] } },
+    collection: {},                                   // fishId → count
+    stats: { letters: {}, wordsTyped: 0, escapes: 0, sessionCount: 0, lastPlayed: now },
+    jokesEndured: 0,                                  // reserved (backlog groan counter)
+  };
+}
+
+function readIndex() { try { return JSON.parse(localStorage.getItem(INDEX_KEY)) ?? []; } catch { return []; } }
+function writeIndex(list) { localStorage.setItem(INDEX_KEY, JSON.stringify(list)); }
+function readProfile(id) { try { return JSON.parse(localStorage.getItem(PROFILE_KEY(id))); } catch { return null; } }
+
+function persistSave() {
+  if (!save) return;
+  save.updatedAt = Date.now();
+  save.totalCatches = totalCatches();
+  save.stage = unlockedStageCount(save.totalCatches);
+  save.stats.lastPlayed = save.updatedAt;
+  localStorage.setItem(PROFILE_KEY(save.id), JSON.stringify(save));
+  const idx = readIndex();
+  const row = idx.find(p => p.id === save.id);
+  if (row) { row.name = save.name; row.avatar = save.avatar; row.updatedAt = save.updatedAt; writeIndex(idx); }
+  syncPush(save);   // M4b: push to Firestore when signed in; no-op otherwise
+}
+
+function createProfile(name, avatar) {
+  const p = blankProfile(name || "Angler", avatar || pick(AVATARS));
+  localStorage.setItem(PROFILE_KEY(p.id), JSON.stringify(p));
+  writeIndex([...readIndex(), { id: p.id, name: p.name, avatar: p.avatar, updatedAt: p.updatedAt }]);
+  return p;
+}
+
+function deleteProfile(id) {
+  localStorage.removeItem(PROFILE_KEY(id));
+  writeIndex(readIndex().filter(p => p.id !== id));
+}
+
+// One-time migration of the pre-M4 single save into a first profile.
+function migrateLegacySave() {
+  const legacy = localStorage.getItem(LEGACY_KEY);
+  if (!legacy || readIndex().length) return;
+  try {
+    const old = JSON.parse(legacy);
+    const p = blankProfile("Player 1", "🎣");
+    p.coins = old.coins ?? 0;
+    p.collection = old.caught ?? {};
+    if (old.gear) p.upgrades = {
+      rod: old.gear.rod ?? "stick", bait: old.gear.bait ?? "worm",
+      owned: old.gear.owned ?? { rod: ["stick"], bait: ["worm"] },
+    };
+    p.totalCatches = Object.values(p.collection).reduce((a, b) => a + b, 0);
+    p.stage = unlockedStageCount(p.totalCatches);
+    localStorage.setItem(PROFILE_KEY(p.id), JSON.stringify(p));
+    writeIndex([{ id: p.id, name: p.name, avatar: p.avatar, updatedAt: p.updatedAt }]);
+    localStorage.removeItem(LEGACY_KEY);
+  } catch { /* ignore a malformed legacy save */ }
+}
+
+// ---- Firestore sync hooks (filled in by M4b; safe no-ops until then) ----
+async function syncInit() { /* M4b: init Firebase, restore session, pull remote profiles */ }
+function syncPush(_profile) { /* M4b: write-through to Firestore when signed in */ }
+
+function equippedRod()  { return CONFIG.shop.rods.find(r => r.id === save.upgrades.rod); }
+function equippedBait() { return CONFIG.shop.baits.find(b => b.id === save.upgrades.bait); }
 
 // ---- Letter unlocks: total catches decide which stages are open ----
-function totalCatches() { return Object.values(save.caught).reduce((a, b) => a + b, 0); }
+function totalCatches() { return Object.values(save.collection).reduce((a, b) => a + b, 0); }
 function unlockedStageCount(total) {
   return CONFIG.unlock.stages.filter(s => total >= s.catchesRequired).length;
 }
@@ -84,8 +161,20 @@ let fish = null;           // roster entry currently on the line
 let reelPool = [];         // words matched to the hooked fish's difficulty
 let wordsToLand = 0;
 let wordsLeft = 0;
-let caught = 0, escaped = 0;
 let inputLocked = false;
+let pickerOpen = true;     // the profile picker gates play until a kid is chosen
+let gameGen = 0;           // bumped on each profile activation; stales old timers
+
+// silent typing stats (feeds the v2 adaptive meter — kids never see these)
+let lastKeyTime = 0;                 // 0 = start of a word, don't time the first letter
+const MAX_LATENCY_MS = 5000;         // ignore gaps this long (kid stepped away)
+function statLetter(l) { return (save.stats.letters[l] ??= { n: 0, errors: 0, msTotal: 0 }); }
+
+// run fn after delay unless the game moved on (profile switched) or picker opened
+function later(fn, delay) {
+  const g = gameGen;
+  setTimeout(() => { if (g === gameGen && !pickerOpen) fn(); }, delay);
+}
 
 // ---- DOM ----
 const $ = id => document.getElementById(id);
@@ -210,7 +299,7 @@ function setStatus(t) { el.status.textContent = t; }
 // ---- Phases ----
 function startCast() {
   phase = "cast"; inputLocked = false;
-  target = pick(WORDS).w; typed = 0;
+  target = pick(WORDS).w; typed = 0; lastKeyTime = 0;
   tension = 0; renderTension();
   el.dist.textContent = "—";
   el.line.style.width = "0px";
@@ -231,7 +320,7 @@ function startWait() {
   burst(400, 195, 5);
   bobberIn();
   setStatus(pick(PUNS.wait));
-  setTimeout(bite, rand(...CONFIG.bite.delayMsRange) * equippedBait().biteSpeedMult);
+  later(bite, rand(...CONFIG.bite.delayMsRange) * equippedBait().biteSpeedMult);
 }
 
 function bite() {
@@ -253,7 +342,7 @@ function bite() {
   nextReelWord();
 }
 
-function nextReelWord() { target = pick(reelPool).w; typed = 0; renderWord(); }
+function nextReelWord() { target = pick(reelPool).w; typed = 0; lastKeyTime = 0; renderWord(); }
 
 function wordComplete() {
   wordsLeft--;
@@ -266,7 +355,7 @@ function wordComplete() {
   inputLocked = true;
   el.word.innerHTML = `<span class="done">${target}</span>`;
   updateGuide(null);
-  setTimeout(() => { inputLocked = false; nextReelWord(); }, CONFIG.reel.wordPauseMs);
+  later(() => { inputLocked = false; nextReelWord(); }, CONFIG.reel.wordPauseMs);
 }
 
 function land(success) {
@@ -274,16 +363,16 @@ function land(success) {
   el.word.textContent = "";
   updateGuide(null);
   if (success) {
-    caught++; el.caught.textContent = caught;
     el.fish.classList.add("landing");
     burst(150, 240, 14);
     const stagesBefore = unlockedStageCount(totalCatches());
-    const firstCatch = !save.caught[fish.id];
+    const firstCatch = !save.collection[fish.id];
     const amount = fish.coins + (firstCatch ? CONFIG.economy.firstCatchBonus : 0);
     save.coins += amount;
-    save.caught[fish.id] = (save.caught[fish.id] ?? 0) + 1;
-    persistSave();
+    save.collection[fish.id] = (save.collection[fish.id] ?? 0) + 1;
+    persistSave();                              // the one write per catch
     el.coins.textContent = save.coins;
+    el.caught.textContent = totalCatches();
     coinFloat(140, 200, amount);
     const isRare = fish.tier === "rare" || fish.tier === "legendary";
     const pun = isRare ? pick(PUNS.catchRare) : pick(PUNS.catchCommon);
@@ -294,15 +383,17 @@ function land(success) {
       const fresh = CONFIG.unlock.stages.slice(stagesBefore, stagesAfter).flatMap(s => [...s.letters]);
       recomputeUnlocks();
       showUnlock(fresh);
-      setTimeout(startCast, CONFIG.unlock.celebrateMs);
+      later(startCast, CONFIG.unlock.celebrateMs);
       return;
     }
   } else {
-    escaped++; el.escaped.textContent = escaped;
+    save.stats.escapes = (save.stats.escapes ?? 0) + 1;
+    persistSave();                              // flush accumulated stats on escape
+    el.escaped.textContent = save.stats.escapes;
     el.fish.style.left = "760px";
     setStatus(pick(PUNS.escape));
   }
-  setTimeout(startCast, CONFIG.reel.recastDelayMs);
+  later(startCast, CONFIG.reel.recastDelayMs);
 }
 
 // the "new letter!" moment: banner over the pond, fresh keys pulse on the guide
@@ -321,22 +412,40 @@ function showUnlock(letters) {
   }, CONFIG.unlock.celebrateMs);
 }
 
+// record a processed keystroke for the silent adaptive-meter stats
+function recordKey(expected, correct) {
+  const s = statLetter(expected);
+  if (correct) {
+    s.n++;
+    const dt = Date.now() - lastKeyTime;
+    if (lastKeyTime && dt < MAX_LATENCY_MS) s.msTotal += dt;
+  } else {
+    s.errors++;
+  }
+  lastKeyTime = Date.now();
+}
+
 // ---- Input ----
 document.addEventListener("keydown", (e) => {
-  if (collectionOpen || shopOpen || inputLocked || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (!save || pickerOpen || collectionOpen || shopOpen || inputLocked) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key.length !== 1) return;
   const key = e.key.toLowerCase();
   if (!/[a-z]/.test(key)) return;
 
-  if (key === target[typed]) {
+  const expected = target[typed];
+  if (key === expected) {
+    recordKey(expected, true);
     typed++;
     if (phase === "reel") { tension = Math.max(0, tension - CONFIG.reel.correctRelief); renderTension(); }
     renderWord();
     if (typed === target.length) {
+      save.stats.wordsTyped++;
       if (phase === "cast") startWait();
       else if (phase === "reel") wordComplete();
     }
   } else {
+    recordKey(expected, false);
     el.word.classList.remove("shakeword"); void el.word.offsetWidth; el.word.classList.add("shakeword");
     if (phase === "reel") {
       tension = Math.min(CONFIG.reel.escapeAt, tension + CONFIG.reel.errorTension);
@@ -437,7 +546,7 @@ const collectionGrid = $("collection-grid");
 function renderCollection() {
   collectionGrid.innerHTML = "";
   for (const f of FISH) {
-    const count = save.caught[f.id] ?? 0;
+    const count = save.collection[f.id] ?? 0;
     const cell = document.createElement("div");
     cell.className = "cell" + (count ? "" : " unknown");
     const shape = document.createElement("div");
@@ -483,8 +592,8 @@ function renderShop() {
 function renderShopList(items, container, kind, hint) {
   container.innerHTML = "";
   for (const item of items) {
-    const owned = save.gear.owned[kind].includes(item.id);
-    const equipped = save.gear[kind] === item.id;
+    const owned = save.upgrades.owned[kind].includes(item.id);
+    const equipped = save.upgrades[kind] === item.id;
     const row = document.createElement("div");
     row.className = "shop-row";
     const name = document.createElement("span");
@@ -501,7 +610,7 @@ function renderShopList(items, container, kind, hint) {
     } else if (owned) {
       btn.textContent = "EQUIP";
       btn.addEventListener("click", () => {
-        save.gear[kind] = item.id;
+        save.upgrades[kind] = item.id;
         persistSave();
         renderShop();
       });
@@ -511,8 +620,8 @@ function renderShopList(items, container, kind, hint) {
       btn.addEventListener("click", () => {
         if (save.coins < item.cost) return;
         save.coins -= item.cost;
-        save.gear.owned[kind].push(item.id);
-        save.gear[kind] = item.id;
+        save.upgrades.owned[kind].push(item.id);
+        save.upgrades[kind] = item.id;
         persistSave();
         el.coins.textContent = save.coins;
         renderShop();
@@ -537,11 +646,94 @@ document.addEventListener("keydown", (e) => {
   if (shopOpen) toggleShop(false);
 });
 
-try {
-  [FULL_POOL, FISH] = await Promise.all([loadJson("data/words.json"), loadJson("data/fish.json")]);
+// ---- Profile picker (shown on launch; gates the game until a kid is chosen) ----
+const profilesRoot = $("profiles");
+const profileGrid = $("profile-grid");
+const profileNew = $("profile-new");
+let chosenAvatar = AVATARS[0];
+
+function showProfilePicker() {
+  pickerOpen = true;
+  profileNew.hidden = true;
+  renderProfileGrid();
+  profilesRoot.hidden = false;
+}
+
+function renderProfileGrid() {
+  profileGrid.innerHTML = "";
+  for (const row of readIndex()) {
+    const doc = readProfile(row.id);
+    const caught = doc ? Object.values(doc.collection).reduce((a, b) => a + b, 0) : 0;
+    const cell = document.createElement("button");
+    cell.className = "profile-cell";
+    cell.innerHTML =
+      `<span class="pavatar">${row.avatar}</span><span class="pname"></span><span class="pmeta">${caught} caught</span>`;
+    cell.querySelector(".pname").textContent = row.name;
+    cell.addEventListener("click", () => activateProfile(row.id));
+    const del = document.createElement("span");
+    del.className = "pdelete"; del.textContent = "✕"; del.title = "delete " + row.name;
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (confirm(`Delete ${row.name}'s pond? This can't be undone.`)) { deleteProfile(row.id); renderProfileGrid(); }
+    });
+    cell.appendChild(del);
+    profileGrid.appendChild(cell);
+  }
+  const add = document.createElement("button");
+  add.className = "profile-cell add";
+  add.innerHTML = `<span class="pavatar">＋</span><span class="pname">New angler</span>`;
+  add.addEventListener("click", openNewProfile);
+  profileGrid.appendChild(add);
+}
+
+function openNewProfile() {
+  profileNew.hidden = false;
+  $("profile-name").value = "";
+  chosenAvatar = AVATARS[0];
+  renderAvatarRow();
+  $("profile-name").focus();
+}
+function renderAvatarRow() {
+  const rowEl = $("avatar-row"); rowEl.innerHTML = "";
+  for (const a of AVATARS) {
+    const b = document.createElement("button");
+    b.className = "avatar-opt" + (a === chosenAvatar ? " sel" : "");
+    b.textContent = a;
+    b.addEventListener("click", () => { chosenAvatar = a; renderAvatarRow(); });
+    rowEl.appendChild(b);
+  }
+}
+$("profile-create").addEventListener("click", () => {
+  const name = $("profile-name").value.trim().slice(0, 12) || "Angler";
+  activateProfile(createProfile(name, chosenAvatar).id);
+});
+$("profile-name").addEventListener("keydown", (e) => { if (e.key === "Enter") $("profile-create").click(); });
+$("profile-cancel").addEventListener("click", () => { profileNew.hidden = true; });
+$("switch-btn").addEventListener("click", () => { if (save) persistSave(); showProfilePicker(); });
+
+function activateProfile(id) {
+  const doc = readProfile(id);
+  if (!doc) return;
+  save = doc;
+  localStorage.setItem(ACTIVE_KEY, id);
+  save.stats.sessionCount = (save.stats.sessionCount ?? 0) + 1;
+  gameGen++;
+  pickerOpen = false;
+  profilesRoot.hidden = true;
   recomputeUnlocks();
   el.coins.textContent = save.coins;
+  el.caught.textContent = totalCatches();
+  el.escaped.textContent = save.stats.escapes ?? 0;
+  $("who").textContent = save.avatar + " " + save.name;
+  persistSave();                     // records the new session (sessionCount/lastPlayed)
   startCast();
+}
+
+try {
+  [FULL_POOL, FISH] = await Promise.all([loadJson("data/words.json"), loadJson("data/fish.json")]);
+  migrateLegacySave();
+  await syncInit();                  // M4b: may restore a signed-in session + pull profiles
+  showProfilePicker();
 } catch (err) {
   setStatus("The word pool got away… reload to try again");
   console.error(err);

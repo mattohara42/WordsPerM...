@@ -58,10 +58,12 @@
   </div>
 
   <div id="controls">
+    <span id="who"></span>
     <span>Fingers:</span>
     <button class="toggle-btn active" id="guide-toggle">ON</button>
     <button class="toggle-btn" id="collection-btn">COLLECTION</button>
     <button class="toggle-btn" id="shop-btn">SHOP</button>
+    <button class="toggle-btn" id="switch-btn">SWITCH KID</button>
   </div>
 
   <div id="guide"></div>
@@ -71,6 +73,21 @@
       <div class="overlay-title">FISH COLLECTION</div>
       <div id="collection-grid"></div>
       <button class="toggle-btn" id="collection-close">CLOSE&nbsp;&nbsp;esc</button>
+    </div>
+  </div>
+
+  <div id="profiles" class="overlay" hidden>
+    <div class="overlay-panel">
+      <div class="overlay-title">WHO'S FISHING?</div>
+      <div id="profile-grid"></div>
+      <div id="profile-new" hidden>
+        <input id="profile-name" type="text" maxlength="12" placeholder="your name" autocomplete="off" />
+        <div id="avatar-row"></div>
+        <div class="profile-actions">
+          <button class="toggle-btn" id="profile-create">START FISHING</button>
+          <button class="toggle-btn" id="profile-cancel">back</button>
+        </div>
+      </div>
     </div>
   </div>
 

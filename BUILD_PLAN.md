@@ -35,9 +35,15 @@ Port the prototype's cast → wait → reel → catch loop into the real app str
 Define ~8–10 fish across 3 rarity tiers. Rarity maps to word difficulty. Catches award coins. Pixel-art placeholder sprites — source from Kenney.nl (CC0) or itch.io cozy fishing packs; prefer packs sharing one palette. Kid-drawn fish are a legitimate asset pipeline.
 **Done when:** rare fish demand harder words and the coin balance persists across a session.
 
-### M4 — Profiles (Firestore)
+### 🟡 M4 — Profiles (Firestore) — M4a done 2026-07-16, M4b (Firestore sync) pending
 Profile picker on launch. Per-kid: unlocked letters, coins, collection, upgrades, accuracy/timing stats (logged silently — feeds v2 adaptive meter). Reuse Family Hub Firestore patterns.
 **Done when:** two profiles maintain fully separate state across reloads.
+- **M4a (done):** profile picker + emoji avatars, per-kid localStorage save shaped
+  per FIRESTORE.md, legacy-save migration, silent per-letter/word/session stats,
+  switch-kid. Meets the done-when on localStorage alone.
+- **M4b (pending):** Firestore read-on-launch / write-on-catch + localStorage
+  mirror, one parent Google sign-in for cross-device sync. Needs live HTTPS
+  (Netlify) to verify — sandbox can't reach Google/Firestore.
 
 ### ✅ M5 — Letter unlock progression (done 2026-07-15)
 Fish-count milestones unlock new letters in a configured order. Celebration moment on unlock ("new letter!"). Word pool filter updates live.
