@@ -41,9 +41,14 @@ Profile picker on launch. Per-kid: unlocked letters, coins, collection, upgrades
 - **M4a (done):** profile picker + emoji avatars, per-kid localStorage save shaped
   per FIRESTORE.md, legacy-save migration, silent per-letter/word/session stats,
   switch-kid. Meets the done-when on localStorage alone.
-- **M4b (pending):** Firestore read-on-launch / write-on-catch + localStorage
-  mirror, one parent Google sign-in for cross-device sync. Needs live HTTPS
-  (Netlify) to verify — sandbox can't reach Google/Firestore.
+- **M4b (code complete, awaiting live verification):** Firestore
+  read-on-launch / write-on-catch + localStorage mirror, one parent Google
+  sign-in (Firebase signInWithPopup) for cross-device sync, ownerUid-scoped
+  docs, firestore.rules to add. Offline fallback verified in-sandbox (Firebase
+  unreachable → game plays on localStorage, no errors). The signed-in path
+  needs live HTTPS (Netlify) + Firebase console setup to verify — see the
+  session handoff. Parent must: add fishtyping.netlify.app to Firebase Auth
+  authorized domains, and merge firestore.rules into the shared ruleset.
 
 ### ✅ M5 — Letter unlock progression (done 2026-07-15)
 Fish-count milestones unlock new letters in a configured order. Celebration moment on unlock ("new letter!"). Word pool filter updates live.

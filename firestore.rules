@@ -1,0 +1,50 @@
+// Firestore security rules for Typing Fishing (M4b).
+//
+// ⚠️  DO NOT paste this whole file over your Family Hub rules — it would delete
+//     them and break Family Hub. This database is shared. Instead:
+//
+//   1. Firebase console → Firestore Database → Rules.
+//   2. Find your existing `match /databases/{database}/documents { … }` block.
+//   3. Paste ONLY the `match /typingFishing/{profileId} { … }` block below,
+//      INSIDE that block, alongside your current Family Hub match rules.
+//   4. Publish.
+//
+// What these enforce: a signed-in parent can read and write only the profile
+// docs they own (ownerUid == their uid). Nobody can read another family's
+// kids, and writes must stamp the caller's own uid. No sign-in → no access,
+// which is why the game falls back to localStorage when signed out.
+
+match /typingFishing/{profileId} {
+  allow read:   if request.auth != null
+                && resource.data.ownerUid == request.auth.uid;
+
+  allow create: if request.auth != null
+                && request.resource.data.ownerUid == request.auth.uid;
+
+  allow update: if request.auth != null
+                && resource.data.ownerUid == request.auth.uid
+                && request.resource.data.ownerUid == request.auth.uid;
+
+  allow delete: if request.auth != null
+                && resource.data.ownerUid == request.auth.uid;
+}
+
+// ── For reference only — the shape your full ruleset should have after step 3.
+// ── (Your real Family Hub rules go where the comment is; don't lose them.)
+//
+// rules_version = '2';
+// service cloud.firestore {
+//   match /databases/{database}/documents {
+//
+//     // … your existing Family Hub match blocks stay here, untouched …
+//
+//     match /typingFishing/{profileId} {
+//       allow read:   if request.auth != null && resource.data.ownerUid == request.auth.uid;
+//       allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;
+//       allow update: if request.auth != null
+//                     && resource.data.ownerUid == request.auth.uid
+//                     && request.resource.data.ownerUid == request.auth.uid;
+//       allow delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+//     }
+//   }
+// }

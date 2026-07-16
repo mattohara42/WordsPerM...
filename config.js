@@ -59,4 +59,25 @@ export const CONFIG = {
     // coin values live in fish.json per fish; keep any global multipliers here
     firstCatchBonus: 2,     // extra coins the first time a species is caught
   },
+
+  // Firebase / Firestore sync (M4b). These values are public by design — a
+  // Firebase web config is an identifier, not a secret; access is controlled
+  // by the Firestore security rules (see firestore.rules). Reuses the Family
+  // Hub project. Sync is optional: with no sign-in the game runs on
+  // localStorage alone.
+  firebase: {
+    sdkVersion: "10.14.1",        // gstatic CDN version; bump here if an import 404s
+    collection: "typingFishing",  // one doc per kid lives directly in this top-level collection
+    config: {
+      apiKey: "AIzaSyCq_WtqHd5WmJldlNptE8zchu2RmuAX_yE",
+      authDomain: "familyhub-5fc43.firebaseapp.com",
+      projectId: "familyhub-5fc43",
+      storageBucket: "familyhub-5fc43.firebasestorage.app",
+      messagingSenderId: "941604403053",
+      appId: "1:941604403053:web:4d4a0e0d870f41459b8c64",
+    },
+    // The Google OAuth web client backing sign-in (kept for reference; Firebase
+    // Auth's signInWithPopup uses the project's default client automatically).
+    oauthClientId: "1023822683234-e0pslac1cag5ju2o26gl5c9kq36udr7q.apps.googleusercontent.com",
+  },
 };

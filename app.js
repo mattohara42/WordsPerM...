@@ -94,9 +94,85 @@ function migrateLegacySave() {
   } catch { /* ignore a malformed legacy save */ }
 }
 
-// ---- Firestore sync hooks (filled in by M4b; safe no-ops until then) ----
-async function syncInit() { /* M4b: init Firebase, restore session, pull remote profiles */ }
-function syncPush(_profile) { /* M4b: write-through to Firestore when signed in */ }
+// ---- Firestore sync (M4b) ----
+// One parent Google sign-in backs up every kid's profile to Firestore and
+// pulls them on other devices. Everything here is best-effort: if Firebase
+// can't load, isn't configured, or nobody's signed in, the game runs entirely
+// on the localStorage mirror and none of this throws. Profiles are stored as
+// one doc per kid in the CONFIG.firebase.collection collection, scoped by
+// ownerUid so the security rules can keep families separate.
+const COL = CONFIG.firebase.collection;
+let fb = null;   // { db, auth, fs, authNs, uid } once Firebase has loaded
+
+async function syncInit() {
+  try {
+    const base = "https://www.gstatic.com/firebasejs/" + CONFIG.firebase.sdkVersion;
+    const [appNs, fs, authNs] = await Promise.all([
+      import(base + "/firebase-app.js"),
+      import(base + "/firebase-firestore.js"),
+      import(base + "/firebase-auth.js"),
+    ]);
+    const app = appNs.initializeApp(CONFIG.firebase.config);
+    fb = { db: fs.getFirestore(app), auth: authNs.getAuth(app), fs, authNs, uid: null };
+    setSyncStatus("sync-out");
+    authNs.onAuthStateChanged(fb.auth, async (user) => {
+      fb.uid = user?.uid ?? null;
+      if (user) {
+        setSyncStatus("sync-in", user.email || user.displayName || "signed in");
+        try { await pullProfiles(); } catch (e) { console.warn("profile pull failed", e); }
+      } else {
+        setSyncStatus("sync-out");
+      }
+    });
+  } catch (err) {
+    // Offline, blocked, or misconfigured — stay local-only and silent.
+    console.info("Sync unavailable; playing offline on localStorage.", err?.message || err);
+    setSyncStatus("sync-off");
+  }
+}
+
+function signIn() {
+  if (!fb) return;
+  fb.authNs.signInWithPopup(fb.auth, new fb.authNs.GoogleAuthProvider())
+    .catch(err => { console.warn("sign-in failed", err); setSyncStatus("sync-out", "sign-in cancelled"); });
+}
+function signOutSync() { if (fb) fb.authNs.signOut(fb.auth).catch(() => {}); }
+
+// write-through on every persistSave() when signed in; fire-and-forget
+function syncPush(profile) {
+  if (!fb?.uid) return;
+  const { doc, setDoc } = fb.fs;
+  setDoc(doc(fb.db, COL, profile.id), { ...profile, ownerUid: fb.uid }, { merge: true })
+    .catch(err => console.warn("sync push failed", err));
+}
+
+// pull the family's profiles and reconcile with local by updatedAt (newest wins)
+async function pullProfiles() {
+  if (!fb?.uid) return;
+  const { collection, query, where, getDocs, doc, setDoc } = fb.fs;
+  const snap = await getDocs(query(collection(fb.db, COL), where("ownerUid", "==", fb.uid)));
+  const remote = {};
+  snap.forEach(d => { remote[d.id] = d.data(); });
+
+  const ids = new Set([...readIndex().map(p => p.id), ...Object.keys(remote)]);
+  for (const id of ids) {
+    const loc = readProfile(id);
+    const rem = remote[id];
+    const locT = loc?.updatedAt ?? 0, remT = rem?.updatedAt ?? 0;
+    if (rem && remT > locT) {
+      // remote is newer — adopt it locally, but never yank a kid mid-game
+      if (!(save && save.id === id && !pickerOpen)) localStorage.setItem(PROFILE_KEY(id), JSON.stringify(rem));
+    } else if (loc && locT >= remT) {
+      // local is newer or remote-missing — back it up
+      setDoc(doc(fb.db, COL, id), { ...loc, ownerUid: fb.uid }, { merge: true }).catch(() => {});
+    }
+  }
+  // rebuild the picker index from whatever now exists locally
+  const idx = [];
+  for (const id of ids) { const d = readProfile(id); if (d) idx.push({ id, name: d.name, avatar: d.avatar, updatedAt: d.updatedAt }); }
+  writeIndex(idx);
+  if (pickerOpen) renderProfileGrid();
+}
 
 function equippedRod()  { return CONFIG.shop.rods.find(r => r.id === save.upgrades.rod); }
 function equippedBait() { return CONFIG.shop.baits.find(b => b.id === save.upgrades.bait); }
@@ -711,6 +787,24 @@ $("profile-name").addEventListener("keydown", (e) => { if (e.key === "Enter") $(
 $("profile-cancel").addEventListener("click", () => { profileNew.hidden = true; });
 $("switch-btn").addEventListener("click", () => { if (save) persistSave(); showProfilePicker(); });
 
+// sync bar in the picker: reflects Firebase/sign-in state
+const syncBtn = $("sync-btn");
+const syncStatus = $("sync-status");
+function setSyncStatus(state, detail) {
+  // states: sync-off (unavailable) | sync-out (signed out) | sync-in (signed in)
+  syncBtn.hidden = state === "sync-off";
+  if (state === "sync-in") {
+    syncStatus.textContent = "☁ synced" + (detail ? " · " + detail : "");
+    syncBtn.textContent = "SIGN OUT";
+  } else if (state === "sync-out") {
+    syncStatus.textContent = detail || "play saves on this device";
+    syncBtn.textContent = "SIGN IN TO SYNC";
+  } else {
+    syncStatus.textContent = "playing offline — saves on this device";
+  }
+}
+syncBtn.addEventListener("click", () => { fb?.uid ? signOutSync() : signIn(); });
+
 function activateProfile(id) {
   const doc = readProfile(id);
   if (!doc) return;
@@ -732,8 +826,10 @@ function activateProfile(id) {
 try {
   [FULL_POOL, FISH] = await Promise.all([loadJson("data/words.json"), loadJson("data/fish.json")]);
   migrateLegacySave();
-  await syncInit();                  // M4b: may restore a signed-in session + pull profiles
   showProfilePicker();
+  syncInit();                        // fire-and-forget: wires sign-in + pulls when ready,
+                                     // never blocks play if the network is slow or down
+
 } catch (err) {
   setStatus("The word pool got away… reload to try again");
   console.error(err);
