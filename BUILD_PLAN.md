@@ -74,13 +74,14 @@ One dedicated milestone, done against real gameplay rather than sprinkled throug
 Netlify deploy, kid playtest, tune `CFG` values (words-per-fish, tension penalties, pause length) based on real beginner typing.
 **Done when:** a kid lands a fish unassisted and asks to play again.
 
-### M9 — Visual overhaul (proposed, after M8)
+### 🟡 M9 — Visual overhaul (layout done 2026-07-16, sprite pass pending)
 UI-only pass, no new game logic:
-- `#scene` fills the viewport (`100dvh`/`100dvw`) instead of a fixed 720×360 box; `#hud`/`#controls` become small corner overlays so the scene never gets squeezed.
+- **Layout (done):** `#scene` keeps its original 720×360 design-space coordinate system (every bobber/line/fish pixel position tuned earlier assumes it) — a new `#scene-frame` wrapper scales+centers that fixed canvas to cover the viewport (`Math.max(innerWidth/720, innerHeight/360)`, recomputed on resize), and `#scene-viewport` (`position: fixed; inset: 0`) crops the overflow at the real screen edges. Anchored **bottom-left**, not centered — the design's 2:1 aspect is wider/shorter than typical 16:9 windows, so horizontal cropping is the norm; centering was cropping the boat (left edge) off-screen entirely. Bottom-left anchoring means cropping only ever eats into the decorative far-right reeds or the sky, never the boat or the tension meter (bottom edge).
 - Boat waterline fix (done ahead of this milestone — `#rig` was floating in the sky layer at `top: 88px`, moved to `top: 178px` to sit at `#water`'s start).
-- Ghost-hands `#guide` moves from below-the-fold flow into a `position: fixed` bar pinned to the bottom of the viewport, `rgba` background so the scene shows through; already-built finger animation logic is unchanged, only its container/positioning.
-- Real sprite pass replacing CSS placeholder shapes (fish, boat, kid) — Kenney.nl/itch.io cozy fishing packs sharing the locked M7.5 palette, or kid-drawn art per CLAUDE.md's asset guidance.
-**Done when:** the game reads as full-screen with no fixed-size scene box, the finger guide overlays the bottom of the viewport without displacing gameplay, and placeholder CSS shapes are replaced with real sprites.
+- **Ghost-hands overlay (done):** `#guide` moved into a new `#guide-panel` wrapper — `position: fixed`, pinned bottom-center, `rgba` translucent background + blur — while `#guide` itself keeps its original relative coordinate system untouched (its children's pixel math didn't need to change).
+- `#hud`/`#controls` are now small `position: fixed` corner overlays (top-right) instead of flowing below the scene.
+- **Still pending:** real sprite pass replacing CSS placeholder shapes (fish, boat, kid) — Kenney.nl/itch.io cozy fishing packs sharing the locked M7.5 palette, or kid-drawn art per CLAUDE.md's asset guidance. Needs a decision on sourcing approach before starting.
+**Done when:** the game reads as full-screen with no fixed-size scene box (✅), the finger guide overlays the bottom of the viewport without displacing gameplay (✅), and placeholder CSS shapes are replaced with real sprites (pending).
 
 **Explicitly out of scope for M9:** multiple background scenes / levels — that's the existing "more ponds/locations" v2 item (see BACKLOG.md → World), a bigger scope decision (new backgrounds only, vs. new fish/mechanics per level) to be scoped on its own once M9 ships.
 

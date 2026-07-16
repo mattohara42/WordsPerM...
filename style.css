@@ -23,25 +23,41 @@
   --mono: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
 body {
   font-family: var(--mono);
   background: var(--abyss);
   color: var(--ink);
-  min-height: 100vh;
-  display: flex; flex-direction: column; align-items: center;
-  padding: 20px 14px;
+  overflow: hidden;
 }
-h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color: var(--dim); }
+h1 {
+  position: fixed; top: 10px; left: 14px; z-index: 5;
+  font-family: var(--display); font-size: 10px; letter-spacing: 0.1em; color: var(--dim);
+  background: rgba(8,18,26,0.45); padding: 5px 9px; border-radius: 6px;
+  pointer-events: none;
+}
 
-/* ============ THE POND ============ */
+/* ============ THE POND (full-screen) ============ */
+/* #scene keeps its original 720x360 design-space coordinate system — every
+   bobber/line/fish/particle position tuned earlier assumes it. #scene-frame
+   scales+centers that fixed canvas to cover the viewport ("background-size:
+   cover" style); #scene-viewport crops whatever spills past the real edges.
+   Internal game code never has to know the viewport size. */
+#scene-viewport {
+  position: fixed; inset: 0; z-index: 1; overflow: hidden; background: var(--abyss);
+}
+/* anchored bottom-left, not centered: cropping should only ever eat into
+   the decorative right edge (far reeds) or top edge (sky), never the boat
+   (design x=26, left edge) or the tension meter (design y=360, bottom edge) */
+#scene-frame {
+  position: absolute; left: 0; bottom: 0; width: 720px; height: 360px;
+  transform-origin: left bottom;
+}
 #scene {
   position: relative;
-  width: min(720px, 100%);
+  width: 720px;
   height: 360px;
-  border-radius: 12px;
   overflow: hidden;
-  margin-top: 14px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
 }
 #scene.shake { animation: shake 0.3s; }
 @keyframes shake {
@@ -252,29 +268,44 @@ h1 { font-family: var(--display); font-size: 13px; letter-spacing: 0.1em; color:
   0%, 34% { opacity: 0; } 50%, 72% { opacity: 0.55; } 88%, 100% { opacity: 0; }
 }
 
-/* ============ BELOW THE POND ============ */
-#hud { display: flex; gap: 12px; margin-top: 14px; }
+/* ============ OVERLAY CHROME (floats above the full-screen pond) ============ */
+#hud {
+  position: fixed; top: 12px; right: 14px; z-index: 5;
+  display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; max-width: 62vw;
+}
 .chip {
   font-family: var(--display); font-size: 11px; color: var(--dim);
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
-  padding: 7px 14px; border-radius: 8px;
+  background: rgba(8,18,26,0.55); border: 1px solid rgba(255,255,255,0.12);
+  padding: 6px 12px; border-radius: 8px;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
 }
 .chip b { color: var(--ink); font-size: 14px; }
 .chip.coins b { color: var(--gold); }
 
-#controls { display: flex; gap: 10px; align-items: center; margin-top: 12px; font-size: 12px; color: var(--dim); flex-wrap: wrap; justify-content: center; }
+#controls {
+  position: fixed; top: 46px; right: 14px; z-index: 5;
+  display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--dim);
+  flex-wrap: wrap; justify-content: flex-end; max-width: 62vw;
+}
 #who { font-family: var(--display); font-size: 11px; color: var(--ink); margin-right: 4px; }
 #who:empty { display: none; }
 .toggle-btn {
   font-family: var(--display); font-size: 10px; color: var(--dim);
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(8,18,26,0.55); border: 1px solid rgba(255,255,255,0.15);
   border-radius: 6px; padding: 6px 12px; cursor: pointer;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
 }
 .toggle-btn.active { color: var(--abyss); background: var(--gold); border-color: var(--gold); }
 .toggle-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-/* ============ FINGER GUIDE ============ */
-#guide { position: relative; width: 430px; height: 208px; margin-top: 16px; max-width: 100%; }
+/* ============ FINGER GUIDE (semi-transparent overlay, pinned to the bottom) ============ */
+#guide-panel {
+  position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 5;
+  background: rgba(8,18,26,0.55); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px; padding: 10px; max-width: calc(100vw - 20px); overflow: hidden;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+#guide { position: relative; width: 430px; height: 208px; max-width: 100%; }
 .key {
   position: absolute; width: 38px; height: 38px;
   border: 1px solid rgba(157,180,184,0.25); border-radius: 6px;
