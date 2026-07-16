@@ -454,8 +454,11 @@ function renderTension() {
   el.fill.classList.toggle("danger", tension > 66);
 }
 function fishPosition() {
+  // far-x kept inside the range that stays on-screen even on the narrowest
+  // common desktop aspect ratios under M9's cover-scaled scene (a spawn
+  // point out past ~500px design-x was landing off-screen on 16:10 windows)
   const progress = 1 - wordsLeft / wordsToLand;
-  el.fish.style.left = (600 - progress * 460) + "px";
+  el.fish.style.left = (470 - progress * 330) + "px";
 }
 function setStatus(t) { el.status.textContent = t; }
 
