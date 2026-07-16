@@ -372,6 +372,30 @@ function fishPosition() {
 }
 function setStatus(t) { el.status.textContent = t; }
 
+// idle swimming wobble, layered on top of the word-driven approach toward the
+// boat — fishPosition() still owns net progress, this just keeps it alive
+// between words instead of sliding in a dead-straight line
+const REDUCE_MOTION = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let swimRAF = null, swimStart = 0;
+function startSwim() {
+  if (REDUCE_MOTION) return;
+  swimStart = performance.now();
+  const step = (now) => {
+    if (phase !== "reel") return;
+    const t = (now - swimStart) / 1000;
+    const wobbleY = Math.sin(t * 1.6) * 7 + Math.sin(t * 3.7) * 2;
+    const wobbleX = Math.sin(t * 0.9) * 5;
+    el.fish.style.transform = `translate(${wobbleX.toFixed(1)}px, ${wobbleY.toFixed(1)}px)`;
+    swimRAF = requestAnimationFrame(step);
+  };
+  swimRAF = requestAnimationFrame(step);
+}
+function stopSwim() {
+  if (swimRAF) cancelAnimationFrame(swimRAF);
+  swimRAF = null;
+  el.fish.style.transform = "";
+}
+
 // ---- Phases ----
 function startCast() {
   phase = "cast"; inputLocked = false;
@@ -392,7 +416,7 @@ function startWait() {
   phase = "wait"; inputLocked = true;
   el.word.textContent = "";
   updateGuide(null);
-  el.line.style.width = "330px";
+  el.line.style.width = "300px";
   burst(400, 195, 5);
   bobberIn();
   setStatus(pick(PUNS.wait));
@@ -407,7 +431,7 @@ function bite() {
   reelPool = buildReelPool(fish.difficulty);
   wordsToLand = CONFIG.reel.wordsToLandByTier[tier];
   wordsLeft = wordsToLand;
-  el.fish.classList.add("tier-" + tier);
+  el.fish.classList.add("tier-" + tier, "hooked");
   el.fish.style.setProperty("--fish-color", fish.color);
   el.fish.style.opacity = 1;
   fishPosition();
@@ -415,6 +439,8 @@ function bite() {
   shakeScene();
   burst(410, 200, 10);
   setStatus(pick(PUNS.bite));
+  startSwim();
+  setTimeout(() => el.fish.classList.remove("hooked"), 350);
   nextReelWord();
 }
 
@@ -436,6 +462,7 @@ function wordComplete() {
 
 function land(success) {
   phase = "done"; inputLocked = true;
+  stopSwim();
   el.word.textContent = "";
   updateGuide(null);
   if (success) {
