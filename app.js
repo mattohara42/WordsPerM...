@@ -687,7 +687,7 @@ function recordKey(expected, correct) {
 
 // ---- Input ----
 document.addEventListener("keydown", (e) => {
-  if (!save || pickerOpen || collectionOpen || shopOpen || nudgeOpen || inputLocked) return;
+  if (!save || pickerOpen || collectionOpen || shopOpen || nudgeOpen || progressOpen || inputLocked) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key.length !== 1) return;
   const key = e.key.toLowerCase();
@@ -932,11 +932,64 @@ function maybeShowRodNudge() {
 $("nudge-shop").addEventListener("click", () => { toggleNudge(false); toggleShop(true); });
 $("nudge-close").addEventListener("click", () => toggleNudge(false));
 
+// ---- Parent progress view: per-key accuracy heatmap from stats.letters ----
+let progressOpen = false;
+const progressRoot = $("progress");
+const accColor = acc => `hsl(${Math.round(acc * 120)}, 55%, 42%)`;   // red → green
+
+function renderProgress() {
+  const L = save.stats.letters || {};
+  let totalN = 0, totalErr = 0;
+  for (const k in L) { totalN += L[k].n; totalErr += L[k].errors; }
+  const attempts = totalN + totalErr;
+  const overall = attempts ? Math.round(100 * totalN / attempts) : 0;
+  // trouble keys = lowest accuracy among letters with enough samples to matter
+  const trouble = Object.entries(L)
+    .filter(([k, s]) => /[a-z]/.test(k) && s.n + s.errors >= 3)
+    .map(([k, s]) => ({ k, acc: s.n / (s.n + s.errors) }))
+    .sort((a, b) => a.acc - b.acc).slice(0, 3)
+    .map(t => `${t.k.toUpperCase()} ${Math.round(t.acc * 100)}%`);
+  $("progress-summary").innerHTML =
+    `<b>${attempts}</b> keys typed · <b>${overall}%</b> accurate`
+    + (trouble.length ? `<br>keys to practice: ${trouble.join(" · ")}` : "");
+
+  const kb = $("progress-kb"); kb.innerHTML = "";
+  KB.rows.forEach(row => {
+    const r = document.createElement("div"); r.className = "prow";
+    [...row.keys].forEach(ch => {
+      if (!/[a-z]/.test(ch)) return;               // skip the ";" anchor
+      const s = L[ch]; const tries = s ? s.n + s.errors : 0;
+      const key = document.createElement("div"); key.className = "pkey";
+      key.textContent = ch;
+      if (tries) {
+        const acc = s.n / tries;
+        key.style.background = accColor(acc);
+        key.title = `${ch.toUpperCase()}: ${Math.round(acc * 100)}% over ${tries}`
+          + (s.n ? ` · ~${Math.round(s.msTotal / s.n)}ms/key` : "");
+      } else {
+        key.classList.add("nodata");
+        key.title = `${ch.toUpperCase()}: not typed yet`;
+      }
+      r.appendChild(key);
+    });
+    kb.appendChild(r);
+  });
+}
+
+function toggleProgress(open) {
+  progressOpen = open ?? !progressOpen;
+  if (progressOpen) renderProgress();
+  progressRoot.hidden = !progressOpen;
+}
+$("progress-btn").addEventListener("click", () => toggleProgress(true));
+$("progress-close").addEventListener("click", () => toggleProgress(false));
+
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (collectionOpen) toggleCollection(false);
   if (shopOpen) toggleShop(false);
   if (nudgeOpen) toggleNudge(false);
+  if (progressOpen) toggleProgress(false);
 });
 
 // ---- Profile picker (shown on launch; gates the game until a kid is chosen) ----
