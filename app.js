@@ -519,7 +519,7 @@ function startWait() {
   phase = "wait"; inputLocked = true;
   el.word.textContent = "";
   updateGuide(null);
-  el.line.style.width = "300px";
+  el.line.style.width = "275px";   // reaches the bobber at #line's origin/angle
   burst(400, 195, 5);
   sfxSplash();
   bobberIn();
