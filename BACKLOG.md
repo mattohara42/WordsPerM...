@@ -24,29 +24,30 @@ Ideas captured during design/build. Nothing here expands the current milestone.
   generate-words.mjs blocklist (check for other non-words that slipped
   through the dictionary filter).
 
-## Fun brainstorm — July 2026 (all approved by Matt, unscoped)
+## Fun brainstorm — July 2026 (all approved by Matt)
 
 Design guardrail for every item: cozy first, never punish slow typing — only
 carelessness (repeated errors). Rewards key off accuracy/collection, never speed.
 
-**Quick wins (cheap + reuse existing assets/data):**
-- **Cosmetic shop** — spend coins on hats & boats. Coin sink beyond rods, pure dress-up delight. Needs art (see `ART.md`).
-- **Parent progress view** — hidden "grown-ups" screen: per-key heatmap of what each kid nails vs. fumbles, built entirely from `save.stats.letters` (already logged, nothing surfaces it yet). Low effort, high value for Matt.
-- **Junk catches** — occasionally hook a boot / tin can / grumpy crab with a groan pun. Fake low tier; comedy; teaches "not every cast is a jackpot." Needs a few junk sprites.
-- **Fish size variants** — same species rolls small / average / *lunker*; track personal-best weight per species. One random roll + stored max. No speed pressure.
+**✅ Shipped (2026-07-22):**
+- **Fish size variants** — every catch rolls a weight; "a little one" / "LUNKER" flavor; personal-best-per-species in `save.records`, shown in the collection screen. (`config.size`)
+- **Parent GROWN-UPS view** — per-key accuracy heatmap + trouble-key summary, built from `save.stats.letters`. Read-only, no new data collection.
+- **Fishing journal + badges** — nine punny milestone badges (First Mate, Home Row Hero, Hooked on Typing, Reel Regular, Landed a Lunker, The Deep End, Tackle Box Tycoon, Sharp Shooter, Alphabet Angler). Gold toast on earn (catch + shop), retroactive backfill on open. (`config.badges`, `save.badges`)
+- Also shipped alongside: larger keyboard (palm ovals removed, `GUIDE_SCALE`) and the one-time 25-fish "REEL TALK" rod nudge (`config.economy.rodNudgeAt`).
+
+**⏳ Approved, waiting on art (see `ART.md` — Matt generates in Gemini):**
+- **Junk catches** — occasionally hook a boot / tin can / pond weed with a groan pun. Fake low tier; comedy; "not every cast is a jackpot." Needs `assets/junk-{boot,can,weed}.png`.
+- **Cosmetic shop (boats)** — spend coins on boat skins (clean sprite swap of `boat.png`). Needs `assets/boat-{red,blue,leaf}.png`; `Gemini_Boat_Purple.png` → `boat-purple.png` is a free fourth. NOTE: originally scoped as "hats & boats," but the kid sprite has a hat baked in, so hats would require alternate kid sprites — boats first, hats later as a kid-sprite variant.
 
 **Reasons to come back (gentle, not grindy):**
 - **Today's special fish** — date-seeded rare that only bites today. Cozy daily return hook, no streak-guilt.
-- **Fishing journal / punny badges** — "Home Row Hero" (cleared stage 1), "Hooked on Typing" (100 casts), "The Deep End" (first legendary). Achievement pull without a clock.
 - **The one that got away** — the only failure state (escape) becomes a quest: log the escapee as a silhouette + taunt; catching it later clears the grudge.
 
 **Teaching depth (softly — it's a tutor):**
-- **Trouble-letter casts** — quietly weight word selection toward each kid's weakest key. Invisible adaptive help; data already exists.
+- **Trouble-letter casts** — quietly weight word selection toward each kid's weakest key. Invisible adaptive help; data already exists (and the GROWN-UPS view now surfaces which keys those are).
 - **Clean-streak encouragement** — "three careful catches in a row!" flavor. Rewards accuracy, the game's one real lever.
 
 **Family & world (cozy, never competitive):**
 - **Family trophy wall** — each kid's biggest catch shown together (Firestore is already multi-profile). Sibling delight without a leaderboard.
 - **Named nemesis fish** — Muskie Quixote already exists in `data/fish.json` as the legendary; give it recurring lore + a bigger landing celebration.
 - **Home aquarium** — caught fish swim in a viewable tank. The ultimate "look what I made" for a kid. Needs art.
-
-**Suggested starting order:** cosmetic shop + junk catches (highest fun-per-hour, on-brand for the dad-joke voice), then the parent progress view.

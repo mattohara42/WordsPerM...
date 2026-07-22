@@ -95,6 +95,19 @@ Pulled forward from the SPEC.md v2 parking lot ("sound design beyond basic ambie
 - Volume levels + ambient base pitches live in `CONFIG.audio`; note/melody content lives in app.js next to `PUNS`, matching the existing tuning-vs-content split.
 **Done when:** sound plays after the first profile-pick click, the mute toggle silences everything, and no console errors surface across cast → wait → reel → catch/escape → unlock.
 
+## Post-v1 features (shipped after the M1–M10 core)
+
+Not milestones — incremental additions from `BACKLOG.md`, each cozy/no-speed-pressure and each its own small commit on `main`.
+
+### ✅ 2026-07-22 — fun batch
+- **Larger keyboard / finger guide** — removed the two ghost "palm" ovals; whole guide scales off one `GUIDE_SCALE` knob (app.js), sizes/positions derived instead of hand-tuned.
+- **25-fish rod nudge** — one-time "REEL TALK" modal at `config.economy.rodNudgeAt` catches, pointing at the shop; skipped if already upgraded off the starter rod. Persists per profile.
+- **Fish size variants** — per-catch weight roll (`config.size`), "little/LUNKER" flavor, personal-best-per-species in `save.records`, shown in the collection screen.
+- **Parent GROWN-UPS view** — per-key accuracy heatmap + trouble-key summary from `save.stats.letters`. Read-only.
+- **Fishing journal + badges** — nine punny milestone badges (`config.badges`, `save.badges`); gold toast on earn, retroactive backfill on open.
+
+Still queued (waiting on Gemini art, see `ART.md`): junk catches, cosmetic boat shop.
+
 ## Session tips (learned from Family Hub)
 
 - Start each Claude Code session by pointing it at `SPEC.md` and the current milestone.
