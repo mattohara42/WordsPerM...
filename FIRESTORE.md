@@ -28,10 +28,18 @@ cheap and the offline/localStorage fallback trivial (the doc IS the save file).
   stage: 3,                        // derived from totalCatches + config, but
                                    // stored so the UI never recomputes wrong
   coins: 37,
-  upgrades: { rod: "bamboo", bait: "worm" },
+  // equipped + everything bought (owned gates re-purchase in the shop)
+  upgrades: { rod: "bamboo", bait: "worm",
+              owned: { rod: ["stick", "bamboo"], bait: ["worm"] } },
 
   // collection: fishId → count (silhouette = key absent)
   collection: { bluegill: 12, carp: 3, walleye: 1 },
+
+  // records: fishId → best catch weight in lb (fish size variants)
+  records: { bluegill: 0.9, walleye: 7.4 },
+
+  // badges: earned journal badge ids (see BADGES in app.js)
+  badges: ["firstmate", "homerow", "hooked"],
 
   // silent stats — feeds the v2 adaptive meter; kids never see these
   stats: {
