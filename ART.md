@@ -61,6 +61,18 @@ once the file exists).
 - **No text, no UI, no watermark, no drop shadow baked in.**
 - Square-ish canvas sized to how it's used (small sprites ~64×64; scenes wider).
 
+## Gotcha: Gemini fakes transparency
+
+Gemini often ignores "transparent background" and instead **paints the
+transparency checkerboard as opaque pixels** (alpha 255, neutral gray/white),
+with the subject floating in an oversized canvas. Tells: a corner pixel reads
+alpha 255, and the file is far bigger than a tight sprite (`boat.png` is
+1152×466; the bad batch came in at 1408×768). Salvage it with Pillow — no
+ImageMagick on this Mac — by border **flood-fill** on `chroma<=26 and
+min(rgb)>=132` → alpha 0, then crop to the alpha bbox so CSS `contain` seats it
+like the original. Flood-fill (not a global color key) protects gray *inside* a
+subject. Re-exporting cleanly from Gemini is better when you can get it.
+
 ## Prompt template Claude should reuse
 
 > Pixel art <subject>, cozy retro game asset, chunky clean pixels, warm dawn

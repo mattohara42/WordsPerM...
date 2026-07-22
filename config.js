@@ -53,6 +53,27 @@ export const CONFIG = {
       { id: "cricket", name: "Lucky Cricket", cost: 15, biteSpeedMult: 0.75 },
       { id: "glow",    name: "Glow Grub",     cost: 50, biteSpeedMult: 0.55 },
     ],
+    // Cosmetic only — `file` is the assets/<file>.png swapped onto #boat. The
+    // free default `classic` points at the existing boat.png.
+    boats: [
+      { id: "classic", name: "Ol' Faithful", cost: 0,  file: "boat"        },
+      { id: "red",     name: "Red Rover",    cost: 20, file: "boat-red"    },
+      { id: "blue",    name: "Blue Bayou",   cost: 20, file: "boat-blue"   },
+      { id: "leaf",    name: "Lily Pad",     cost: 40, file: "boat-leaf"   },
+      { id: "purple",  name: "Purple Reign", cost: 60, file: "boat-purple" },
+    ],
+  },
+
+  // Junk catches — comedy fake catches (boot/can/weed) that roll in place of a
+  // fish on a small fraction of bites. No coins, no collection entry, just a
+  // groan pun. `file` is assets/<file>.png; `{it}` in PUNS.junk gets `name`.
+  junk: {
+    chance: 0.08,
+    items: [
+      { id: "boot", name: "an old boot",   file: "junk-boot" },
+      { id: "can",  name: "a rusty can",   file: "junk-can"  },
+      { id: "weed", name: "a clump of pond weed", file: "junk-weed" },
+    ],
   },
 
   economy: {

@@ -37,7 +37,8 @@ function blankProfile(name, avatar) {
     totalCatches: 0, stage: 1, coins: 0,
     // upgrades carries owned lists too (FIRESTORE.md shows equipped only; the
     // shop needs to know what's already bought so it can't be re-purchased)
-    upgrades: { rod: "stick", bait: "worm", owned: { rod: ["stick"], bait: ["worm"] } },
+    upgrades: { rod: "stick", bait: "worm", boat: "classic",
+                owned: { rod: ["stick"], bait: ["worm"], boat: ["classic"] } },
     collection: {},                                   // fishId → count
     records: {},                                      // fishId → best weight (lb)
     badges: [],                                       // earned badge ids (journal)
@@ -228,6 +229,14 @@ const PUNS = {
     "Gone… but the pond is patient",
     "It slipped away — better luck next tide",
   ],
+  // {it} = the junk item's name (see CONFIG.junk.items)
+  junk: [
+    "Aw shucks — you reeled up {it}. Water ya gonna do?",
+    "Just {it}. That's a load of pond scum!",
+    "You caught {it}?! Talk about a re-boot",
+    "{it}. Well, it's the sole of the lake…",
+    "Only {it} — not every cast's a jackpot. Cast again!",
+  ],
 };
 
 // ---- State ----
@@ -236,6 +245,7 @@ let target = "";
 let typed = 0;
 let tension = 0;
 let fish = null;           // roster entry currently on the line
+let junk = null;           // junk item on the line instead of a fish (comedy), or null
 let reelPool = [];         // words matched to the hooked fish's difficulty
 let wordsToLand = 0;
 let wordsLeft = 0;
@@ -548,6 +558,8 @@ function startCast() {
   el.fish.className = "";
   el.fish.style.transform = "";
   el.fish.style.removeProperty("--fish-color");
+  el.fish.style.removeProperty("background-image");   // clear a junk sprite swap
+  junk = null;
   setStatus(pick(PUNS.cast));
   renderWord();
 }
@@ -567,13 +579,19 @@ function startWait() {
 function bite() {
   phase = "reel"; inputLocked = false;
   bobberOut(true);
-  const tier = pickTier();
-  fish = pick(FISH.filter(f => f.tier === tier));
-  reelPool = buildReelPool(fish.difficulty);
+  junk = Math.random() < CONFIG.junk.chance ? pick(CONFIG.junk.items) : null;
+  const tier = junk ? "common" : pickTier();          // junk reels like an easy common
+  fish = junk ? null : pick(FISH.filter(f => f.tier === tier));
+  reelPool = buildReelPool(junk ? 1 : fish.difficulty);
   wordsToLand = CONFIG.reel.wordsToLandByTier[tier];
   wordsLeft = wordsToLand;
-  el.fish.classList.add("tier-" + tier, "hooked");
-  el.fish.style.setProperty("--fish-color", fish.color);
+  el.fish.classList.add("hooked");
+  if (junk) {
+    el.fish.style.backgroundImage = `url("assets/${junk.file}.png")`;
+  } else {
+    el.fish.classList.add("tier-" + tier);
+    el.fish.style.setProperty("--fish-color", fish.color);
+  }
   el.fish.style.opacity = 1;
   setFishTarget();
   fishX = fishTX + 30; fishY = fishTY + 56;   // emerge deep & right of the panel, then rise up-and-in
@@ -611,6 +629,17 @@ function land(success) {
   el.line.style.width = "0px";    // reel the line all the way in
   el.word.textContent = "";
   updateGuide(null);
+  if (success && junk) {
+    // comedy catch: no coins, no collection — just a groan
+    el.fish.classList.add("landing");
+    burst(150, 240, 14);
+    save.jokesEndured = (save.jokesEndured ?? 0) + 1;
+    persistSave();
+    sfxEscape();
+    setStatus(pick(PUNS.junk).replace("{it}", junk.name));
+    later(startCast, CONFIG.reel.recastDelayMs);
+    return;
+  }
   if (success) {
     el.fish.classList.add("landing");
     burst(150, 240, 14);
@@ -860,11 +889,20 @@ function baitHint(bait) {
   const pct = Math.round((1 - bait.biteSpeedMult) * 100);
   return pct === 0 ? "a patient wiggle" : pct + "% faster bites";
 }
+function boatHint()     { return "a fresh coat of paint"; }
+
+// swap the #boat sprite to the equipped skin (cosmetic; also called on load)
+function applyBoatSkin() {
+  const boat = CONFIG.shop.boats.find(b => b.id === save.upgrades.boat) ?? { file: "boat" };
+  $("boat").style.backgroundImage = `url("assets/${boat.file}.png")`;
+}
 
 function renderShop() {
   $("shop-coin-count").textContent = save.coins;
-  renderShopList(CONFIG.shop.rods, $("shop-rods"), "rod", rodHint);
+  renderShopList(CONFIG.shop.rods,  $("shop-rods"),  "rod",  rodHint);
   renderShopList(CONFIG.shop.baits, $("shop-baits"), "bait", baitHint);
+  renderShopList(CONFIG.shop.boats, $("shop-boats"), "boat", boatHint);
+  applyBoatSkin();   // reflect an equip made from this shop pass
 }
 
 function renderShopList(items, container, kind, hint) {
@@ -1171,6 +1209,8 @@ function activateProfile(id) {
   if (!doc) return;
   ensureAudio();   // profile-pick click is the user gesture that unlocks audio
   save = doc;
+  save.upgrades.boat ??= "classic";                  // back-compat: pre-boats saves
+  save.upgrades.owned.boat ??= ["classic"];
   localStorage.setItem(ACTIVE_KEY, id);
   save.stats.sessionCount = (save.stats.sessionCount ?? 0) + 1;
   gameGen++;
@@ -1181,6 +1221,7 @@ function activateProfile(id) {
   el.caught.textContent = totalCatches();
   el.escaped.textContent = save.stats.escapes ?? 0;
   $("who").textContent = save.avatar + " " + save.name;
+  applyBoatSkin();
   persistSave();                     // records the new session (sessionCount/lastPlayed)
   startCast();
 }

@@ -34,10 +34,11 @@ carelessness (repeated errors). Rewards key off accuracy/collection, never speed
 - **Parent GROWN-UPS view** — per-key accuracy heatmap + trouble-key summary, built from `save.stats.letters`. Read-only, no new data collection.
 - **Fishing journal + badges** — nine punny milestone badges (First Mate, Home Row Hero, Hooked on Typing, Reel Regular, Landed a Lunker, The Deep End, Tackle Box Tycoon, Sharp Shooter, Alphabet Angler). Gold toast on earn (catch + shop), retroactive backfill on open. (`config.badges`, `save.badges`)
 - Also shipped alongside: larger keyboard (palm ovals removed, `GUIDE_SCALE`) and the one-time 25-fish "REEL TALK" rod nudge (`config.economy.rodNudgeAt`).
+- **Junk catches** — 8% of bites hook a boot / tin can / pond weed instead of a fish; reels like an easy common, lands with a `PUNS.junk` groan, no coins/collection, bumps `save.jokesEndured`. (`config.junk`; `assets/junk-{boot,can,weed}.png`)
+- **Cosmetic boat shop** — buy boat skins (classic free + red/blue/leaf/purple); BOATS section in the shop, `applyBoatSkin()` swaps `#boat` on equip. (`config.shop.boats`; `assets/boat-{red,blue,leaf,purple}.png`). Gemini baked the checkerboard as opaque pixels — salvaged via strip + tight-crop (see `ART.md`).
 
-**⏳ Approved, waiting on art (see `ART.md` — Matt generates in Gemini):**
-- **Junk catches** — occasionally hook a boot / tin can / pond weed with a groan pun. Fake low tier; comedy; "not every cast is a jackpot." Needs `assets/junk-{boot,can,weed}.png`.
-- **Cosmetic shop (boats)** — spend coins on boat skins (clean sprite swap of `boat.png`). Needs `assets/boat-{red,blue,leaf}.png`; `Gemini_Boat_Purple.png` → `boat-purple.png` is a free fourth. NOTE: originally scoped as "hats & boats," but the kid sprite has a hat baked in, so hats would require alternate kid sprites — boats first, hats later as a kid-sprite variant.
+**⏳ Deferred (post-v1):**
+- **Cosmetic hats** — the kid sprite (`assets/kid.png`) has a hat baked in, so hats need alternate kid sprites. Boats shipped; hats wait on that.
 
 **Reasons to come back (gentle, not grindy):**
 - **Today's special fish** — date-seeded rare that only bites today. Cozy daily return hook, no streak-guilt.
