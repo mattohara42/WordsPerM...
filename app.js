@@ -40,6 +40,7 @@ function blankProfile(name, avatar) {
     upgrades: { rod: "stick", bait: "worm", owned: { rod: ["stick"], bait: ["worm"] } },
     collection: {},                                   // fishId → count
     records: {},                                      // fishId → best weight (lb)
+    badges: [],                                       // earned badge ids (journal)
     stats: { letters: {}, wordsTyped: 0, escapes: 0, sessionCount: 0, lastPlayed: now },
     jokesEndured: 0,                                  // reserved (backlog groan counter)
   };
@@ -623,9 +624,11 @@ function land(success) {
     const { weight, cls } = rollWeight(fish.tier);
     const newBest = weight > (save.records[fish.id] ?? 0);
     if (newBest) save.records[fish.id] = weight;
+    const freshBadges = evaluateBadges();       // marks earned; persistSave below flushes them
     persistSave();                              // the one write per catch
     el.coins.textContent = save.coins;
     el.caught.textContent = totalCatches();
+    freshBadges.forEach((b, i) => later(() => showBadgeToast(b), 1400 + i * 1800));
     maybeShowRodNudge();
     coinFloat(140, 200, amount);
     const isRare = fish.tier === "rare" || fish.tier === "legendary";
@@ -687,7 +690,7 @@ function recordKey(expected, correct) {
 
 // ---- Input ----
 document.addEventListener("keydown", (e) => {
-  if (!save || pickerOpen || collectionOpen || shopOpen || nudgeOpen || progressOpen || inputLocked) return;
+  if (!save || pickerOpen || collectionOpen || shopOpen || nudgeOpen || progressOpen || journalOpen || inputLocked) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key.length !== 1) return;
   const key = e.key.toLowerCase();
@@ -897,9 +900,11 @@ function renderShopList(items, container, kind, hint) {
         save.coins -= item.cost;
         save.upgrades.owned[kind].push(item.id);
         save.upgrades[kind] = item.id;
+        const freshBadges = evaluateBadges();   // e.g. "Tackle Box Tycoon" on the last rod
         persistSave();
         el.coins.textContent = save.coins;
         renderShop();
+        freshBadges.forEach((b, i) => later(() => showBadgeToast(b), 300 + i * 1800));
       });
     }
     row.append(name, hintEl, btn);
@@ -984,12 +989,98 @@ function toggleProgress(open) {
 $("progress-btn").addEventListener("click", () => toggleProgress(true));
 $("progress-close").addEventListener("click", () => toggleProgress(false));
 
+// ---- Fishing journal: punny milestone badges (collection/accuracy, never speed) ----
+const fishTierOf = id => FISH.find(f => f.id === id)?.tier;
+function hasLegendary() { return Object.keys(save.collection).some(id => fishTierOf(id) === "legendary"); }
+function hasLunker() {
+  return Object.entries(save.records || {}).some(([id, w]) => {
+    const tier = fishTierOf(id); if (!tier) return false;
+    const [min, max] = CONFIG.size.weightRangeByTier[tier] ?? CONFIG.size.weightRangeByTier.common;
+    return (w - min) / (max - min) >= CONFIG.size.lunkerFrac;
+  });
+}
+function ownsAllRods() { return CONFIG.shop.rods.every(r => save.upgrades.owned.rod.includes(r.id)); }
+function overallAccuracy() {
+  const L = save.stats.letters || {}; let n = 0, e = 0;
+  for (const k in L) { n += L[k].n; e += L[k].errors; }
+  return { pct: n + e ? n / (n + e) : 0, keys: n + e };
+}
+
+const BADGES = [
+  { id: "firstmate",   name: "First Mate",        desc: "Catch your very first fish.",
+    check: () => totalCatches() >= 1 },
+  { id: "homerow",     name: "Home Row Hero",     desc: "Clear the home row and unlock new letters.",
+    check: () => unlockedStageCount(totalCatches()) >= 2 },
+  { id: "hooked",      name: "Hooked on Typing",  desc: `Type ${CONFIG.badges.wordsTyped} words.`,
+    check: () => (save.stats.wordsTyped || 0) >= CONFIG.badges.wordsTyped },
+  { id: "regular",     name: "Reel Regular",      desc: `Catch ${CONFIG.badges.catches} fish.`,
+    check: () => totalCatches() >= CONFIG.badges.catches },
+  { id: "lunker",      name: "Landed a Lunker",   desc: "Reel in a lunker-sized catch.",
+    check: () => hasLunker() },
+  { id: "deepend",     name: "The Deep End",      desc: "Catch a legendary fish.",
+    check: () => hasLegendary() },
+  { id: "tacklebox",   name: "Tackle Box Tycoon", desc: "Own every rod in the shop.",
+    check: () => ownsAllRods() },
+  { id: "sharpshooter",name: "Sharp Shooter",     desc: `Hit ${CONFIG.badges.accuracyPct}% accuracy over ${CONFIG.badges.accuracyMinKeys}+ keys.`,
+    check: () => { const a = overallAccuracy(); return a.keys >= CONFIG.badges.accuracyMinKeys && a.pct * 100 >= CONFIG.badges.accuracyPct; } },
+  { id: "alphabet",    name: "Alphabet Angler",   desc: "Unlock every letter in the game.",
+    check: () => unlockedStageCount(totalCatches()) >= CONFIG.unlock.stages.length },
+];
+
+// mark any freshly-satisfied badges as earned; returns the newly-earned ones.
+// Does NOT persist — the caller's persistSave() flushes them in its normal write.
+function evaluateBadges() {
+  save.badges ??= [];
+  const newly = [];
+  for (const b of BADGES) {
+    if (save.badges.includes(b.id)) continue;
+    if (b.check()) { save.badges.push(b.id); newly.push(b); }
+  }
+  return newly;
+}
+
+const badgeToast = $("badge-toast");
+function showBadgeToast(b) {
+  badgeToast.innerHTML = `<span class="badge-medal">🎖️</span> Badge earned — <b>${b.name}</b>`;
+  badgeToast.classList.add("show");
+  sfxUnlock();
+  clearTimeout(badgeToast._timer);
+  badgeToast._timer = setTimeout(() => badgeToast.classList.remove("show"), 2600);
+}
+
+let journalOpen = false;
+const journalRoot = $("journal");
+function renderJournal() {
+  evaluateBadges();          // backfill retroactively earned badges (old saves / pre-journal progress)
+  persistSave();
+  const earned = BADGES.filter(b => save.badges.includes(b.id)).length;
+  $("journal-summary").innerHTML = `<b>${earned}</b> / ${BADGES.length} badges earned`;
+  const grid = $("journal-grid"); grid.innerHTML = "";
+  for (const b of BADGES) {
+    const got = save.badges.includes(b.id);
+    const card = document.createElement("div");
+    card.className = "badge-card" + (got ? " earned" : "");
+    card.innerHTML = `<div class="badge-medal">${got ? "🎖️" : "🔒"}</div>`
+      + `<div class="badge-name">${b.name}</div>`
+      + `<div class="badge-desc">${b.desc}</div>`;
+    grid.appendChild(card);
+  }
+}
+function toggleJournal(open) {
+  journalOpen = open ?? !journalOpen;
+  if (journalOpen) renderJournal();
+  journalRoot.hidden = !journalOpen;
+}
+$("journal-btn").addEventListener("click", () => toggleJournal(true));
+$("journal-close").addEventListener("click", () => toggleJournal(false));
+
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (collectionOpen) toggleCollection(false);
   if (shopOpen) toggleShop(false);
   if (nudgeOpen) toggleNudge(false);
   if (progressOpen) toggleProgress(false);
+  if (journalOpen) toggleJournal(false);
 });
 
 // ---- Profile picker (shown on launch; gates the game until a kid is chosen) ----

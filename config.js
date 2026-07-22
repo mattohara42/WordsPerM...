@@ -61,6 +61,15 @@ export const CONFIG = {
     rodNudgeAt: 25,         // total catches that triggers the one-time "buy a rod" nudge
   },
 
+  // Journal badge thresholds. The rest (home row, legendary, lunker, all-rods,
+  // all-letters) derive from other config, so only the raw numbers live here.
+  badges: {
+    wordsTyped: 100,      // "Hooked on Typing"
+    catches: 25,          // "Reel Regular"
+    accuracyPct: 95,      // "Sharp Shooter" — accuracy threshold…
+    accuracyMinKeys: 200, // …over at least this many keystrokes
+  },
+
   // Every catch rolls a weight (lb) in its tier's range — pure flavor + a
   // personal-best-per-species chase. No effect on coins or difficulty.
   size: {
