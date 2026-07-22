@@ -2,7 +2,8 @@
 
 Cozy pixel-art fishing game that teaches kids to type. Read `SPEC.md` first —
 it is the source of truth for all design decisions. `BUILD_PLAN.md` defines
-milestone order; work on exactly one milestone at a time.
+milestone order; work on exactly one milestone at a time. `ART.md` is the
+art pipeline: Claude writes Gemini prompts + filenames, Matt generates the PNGs.
 
 ## Architecture rules
 
