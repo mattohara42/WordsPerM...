@@ -35,3 +35,18 @@ python3 -m http.server 8000
 ```
 
 Then open http://localhost:8000. No build step. That's the whole point.
+
+## Tests
+
+```
+node --test
+```
+
+Zero dependencies — Node's built-in runner. `tests/data.test.mjs` validates the
+hand-edited content and tuning knobs (`data/*.json` and `config.js`): word
+invariants, fish roster, tier-odds sums, unlock ordering, shop/junk config.
+These catch the bug class where a bad merge or manual edit silently corrupts the
+data. Pure game logic (tier rolls, weight/lunker math, stage gating) still lives
+inside `app.js`, which is DOM-bound and not importable in Node — testing it would
+mean extracting those functions into a small `logic.js` module (worth doing, not
+done yet).
