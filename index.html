@@ -53,17 +53,18 @@
     <span class="chip">REEL <b id="dist">—</b></span>
   </div>
 
-  <div id="controls">
+  <!-- the corner "tackle box" — one button that opens the menu tray below it,
+       so the corner stays calm until the kid reaches for their gear -->
+  <button id="tacklebox" aria-label="Tackle box menu" aria-expanded="false" aria-controls="controls">🧰</button>
+  <div id="controls" hidden>
     <span id="who"></span>
-    <span>Fingers:</span>
-    <button class="toggle-btn active" id="guide-toggle">ON</button>
-    <span>Sound:</span>
-    <button class="toggle-btn active" id="sound-toggle">ON</button>
-    <button class="toggle-btn" id="collection-btn">COLLECTION</button>
-    <button class="toggle-btn" id="shop-btn">SHOP</button>
-    <button class="toggle-btn" id="journal-btn">JOURNAL</button>
-    <button class="toggle-btn" id="progress-btn">GROWN-UPS</button>
-    <button class="toggle-btn" id="switch-btn">SWITCH KID</button>
+    <button class="toggle-btn nav" id="collection-btn">🎣 Collection</button>
+    <button class="toggle-btn nav" id="shop-btn">🪝 Bait &amp; tackle</button>
+    <button class="toggle-btn nav" id="journal-btn">📖 Journal</button>
+    <div class="ctrl-row"><span>✋ Fingers</span><button class="toggle-btn active" id="guide-toggle">ON</button></div>
+    <div class="ctrl-row"><span>🔊 Sound</span><button class="toggle-btn active" id="sound-toggle">ON</button></div>
+    <button class="toggle-btn nav" id="progress-btn">👓 Grown-ups</button>
+    <button class="toggle-btn nav" id="switch-btn">🔄 Switch kid</button>
   </div>
 
   <div id="guide-panel"><div id="guide"></div></div>

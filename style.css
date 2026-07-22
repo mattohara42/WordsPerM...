@@ -295,12 +295,38 @@ h1 {
 .chip b { color: var(--ink); font-size: 14px; }
 .chip.coins b { color: var(--gold); }
 
-#controls {
-  position: fixed; top: 46px; right: 14px; z-index: 5;
-  display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--dim);
-  flex-wrap: wrap; justify-content: flex-end; max-width: 62vw;
+/* the tackle box: a single always-visible button that opens #controls */
+#tacklebox {
+  position: fixed; top: 46px; right: 14px; z-index: 6;
+  width: 34px; height: 34px; padding: 0; font-size: 18px; line-height: 1;
+  background: rgba(8,18,26,0.55); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; cursor: pointer;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  transition: transform 0.12s ease, background 0.12s ease;
 }
-#who { font-family: var(--display); font-size: 11px; color: var(--ink); margin-right: 4px; }
+#tacklebox:hover { background: rgba(8,18,26,0.75); }
+#tacklebox[aria-expanded="true"] { background: var(--gold); transform: rotate(-4deg); }
+#tacklebox:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* the menu tray drops out of the tackle box, top-right, as a vertical stack */
+#controls {
+  position: fixed; top: 88px; right: 14px; z-index: 6;
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+  width: 180px; padding: 10px;
+  background: rgba(8,18,26,0.82); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px; font-size: 12px; color: var(--dim);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+#controls[hidden] { display: none; }
+#controls .toggle-btn.nav { text-align: left; }
+.ctrl-row {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--display); font-size: 11px; color: var(--ink); padding-left: 2px;
+}
+#who {
+  font-family: var(--display); font-size: 11px; color: var(--gold);
+  padding: 2px 2px 6px; border-bottom: 1px solid rgba(255,255,255,0.12); margin-bottom: 2px;
+}
 #who:empty { display: none; }
 .toggle-btn {
   font-family: var(--display); font-size: 10px; color: var(--dim);

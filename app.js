@@ -842,6 +842,22 @@ soundBtn.addEventListener("click", () => {
   soundBtn.classList.toggle("active", soundOn);
 });
 
+// ---- Tackle box: one corner button toggles the #controls menu tray ----
+const tackleBtn = $("tacklebox");
+const controlsTray = $("controls");
+function toggleControls(open) {
+  const show = open ?? controlsTray.hidden;
+  controlsTray.hidden = !show;
+  tackleBtn.setAttribute("aria-expanded", String(show));
+}
+tackleBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleControls(); });
+// picking a nav item (collection/shop/…) closes the tray; the ON/OFF toggles leave it open
+controlsTray.addEventListener("click", (e) => { if (e.target.closest(".nav")) toggleControls(false); });
+// a click anywhere outside the tray closes it
+document.addEventListener("click", (e) => {
+  if (!controlsTray.hidden && !controlsTray.contains(e.target) && e.target !== tackleBtn) toggleControls(false);
+});
+
 // ---- Collection screen (per-profile once M4 lands; one shared save for now) ----
 let collectionOpen = false;
 const collectionRoot = $("collection");
@@ -1119,6 +1135,7 @@ document.addEventListener("keydown", (e) => {
   if (nudgeOpen) toggleNudge(false);
   if (progressOpen) toggleProgress(false);
   if (journalOpen) toggleJournal(false);
+  if (!controlsTray.hidden) toggleControls(false);
 });
 
 // ---- Profile picker (shown on launch; gates the game until a kid is chosen) ----
