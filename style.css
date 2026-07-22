@@ -171,13 +171,19 @@ h1 {
    faces left (head toward the boat), matching the swim/landing direction.
    Three tier images cover four tiers: common+uncommon share the common
    sprite, rare and legendary get their own. */
+/* left/top are driven every frame by the reel RAF (so the line can stay glued
+   to the fish), so NO left/top transition here — a transition would smear the
+   fish behind its per-frame target. Only opacity eases. */
 #fish {
   position: absolute; top: 244px; width: 62px; height: 41px;
   background: url("assets/fish-common.png") center / contain no-repeat;
   image-rendering: pixelated;
   opacity: 0;
-  transition: left 0.35s ease, opacity 0.3s ease, top 0.35s ease;
+  transition: opacity 0.3s ease;
 }
+/* uncommon shares the common sprite but hue-shifted so it reads as a
+   different fish (no dedicated uncommon art) */
+#fish.tier-uncommon { filter: hue-rotate(150deg) saturate(1.2); }
 #fish.tier-rare {
   background-image: url("assets/fish-rare.png");
   filter: drop-shadow(0 0 8px rgba(240,192,96,0.7));
