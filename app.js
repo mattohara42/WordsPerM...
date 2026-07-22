@@ -2,6 +2,7 @@
 // All tuning values come from config.js. Words come from data/words.json,
 // filtered to the unlocked letter set.
 import { CONFIG } from "./config.js";
+import * as logic from "./logic.js";   // pure game math (unit-tested in tests/logic.test.mjs)
 
 let FULL_POOL = [];              // every entry from data/words.json
 let WORDS = [];                  // entries typeable with the unlocked letters
@@ -182,12 +183,10 @@ function equippedBait() { return CONFIG.shop.baits.find(b => b.id === save.upgra
 
 // ---- Letter unlocks: total catches decide which stages are open ----
 function totalCatches() { return Object.values(save.collection).reduce((a, b) => a + b, 0); }
-function unlockedStageCount(total) {
-  return CONFIG.unlock.stages.filter(s => total >= s.catchesRequired).length;
-}
+function unlockedStageCount(total) { return logic.unlockedStageCount(CONFIG.unlock.stages, total); }
 function recomputeUnlocks() {
   const n = unlockedStageCount(totalCatches());
-  unlockedLetters = new Set(CONFIG.unlock.stages.slice(0, n).flatMap(s => [...s.letters]));
+  unlockedLetters = logic.lettersForStages(CONFIG.unlock.stages, n);
   WORDS = FULL_POOL.filter(e => [...e.letters].every(l => unlockedLetters.has(l)));
   renderKeyLocks();
 }
@@ -284,38 +283,10 @@ fitScene();
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const rand = (a, b) => a + Math.random() * (b - a);
 
-// roll a catch weight (lb) for a tier; returns { weight, cls } where cls is
-// "lunker" | "little" | "" for flavor. Falls back to the common range.
-function rollWeight(tier) {
-  const [min, max] = CONFIG.size.weightRangeByTier[tier] ?? CONFIG.size.weightRangeByTier.common;
-  const w = rand(min, max);
-  const frac = (w - min) / (max - min);
-  const cls = frac >= CONFIG.size.lunkerFrac ? "lunker"
-            : frac <= CONFIG.size.littleFrac ? "little" : "";
-  return { weight: Math.round(w * 10) / 10, cls };
-}
-
-function pickTier() {
-  const odds = CONFIG.bite.tierOddsByRod[equippedRod().rodLevel];
-  let r = Math.random();
-  for (const [t, p] of Object.entries(odds)) {
-    r -= p;
-    if (r < 0) return t;
-  }
-  return "common";
-}
-
-// Words at the fish's difficulty; mix in easier ones only when the unlocked
-// pool is too thin (e.g. stage 1 has a single difficulty-3 word).
-function buildReelPool(difficulty) {
-  let floor = difficulty, pool;
-  do {
-    const f = floor;
-    pool = WORDS.filter(e => e.d >= f && e.d <= difficulty);
-    floor--;
-  } while (pool.length < CONFIG.reel.minReelPoolSize && floor >= 1);
-  return pool;
-}
+// thin wrappers over logic.js — supply the live CONFIG / equipped rod / word pool
+function rollWeight(tier)           { return logic.rollWeight(CONFIG.size, tier); }
+function pickTier()                 { return logic.pickTier(CONFIG.bite.tierOddsByRod[equippedRod().rodLevel]); }
+function buildReelPool(difficulty)  { return logic.buildReelPool(WORDS, difficulty, CONFIG.reel.minReelPoolSize); }
 
 // ---- Audio: procedural synth, no external asset files (M10) ----
 // Web Audio oscillators/filters generate everything — a water-drone ambient

@@ -42,11 +42,16 @@ Then open http://localhost:8000. No build step. That's the whole point.
 node --test
 ```
 
-Zero dependencies — Node's built-in runner. `tests/data.test.mjs` validates the
-hand-edited content and tuning knobs (`data/*.json` and `config.js`): word
-invariants, fish roster, tier-odds sums, unlock ordering, shop/junk config.
-These catch the bug class where a bad merge or manual edit silently corrupts the
-data. Pure game logic (tier rolls, weight/lunker math, stage gating) still lives
-inside `app.js`, which is DOM-bound and not importable in Node — testing it would
-mean extracting those functions into a small `logic.js` module (worth doing, not
-done yet).
+Zero dependencies — Node's built-in runner.
+
+- `tests/data.test.mjs` validates the hand-edited content and tuning knobs
+  (`data/*.json` and `config.js`): word invariants, fish roster, tier-odds sums,
+  unlock ordering, shop/junk config. Catches the bug class where a bad merge or
+  manual edit silently corrupts the data.
+- `tests/logic.test.mjs` covers the pure game math in `logic.js` — tier rolls,
+  weight/lunker classification, stage gating, and the reel-pool fallback — with
+  RNG injected so the tests are deterministic.
+
+`logic.js` holds the pure, DOM-free math; `app.js` keeps thin wrappers that feed
+it the live `CONFIG`, equipped rod, and word pool. Everything else in `app.js`
+is DOM/state-bound and verified by hand in the browser.
