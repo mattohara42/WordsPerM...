@@ -318,12 +318,12 @@ h1 {
   border-radius: 14px; padding: 10px; max-width: calc(100vw - 20px); overflow: hidden;
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
-#guide { position: relative; width: 430px; height: 208px; max-width: 100%; }
+#guide { position: relative; max-width: 100%; }   /* size set in JS (scales with GUIDE_SCALE) */
 .key {
-  position: absolute; width: 38px; height: 38px;
+  position: absolute;
   border: 1px solid rgba(157,180,184,0.25); border-radius: 6px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 14px; color: var(--dim); background: rgba(18,39,54,0.6);
+  color: var(--dim); background: rgba(18,39,54,0.6);
 }
 .key.ghost-key { opacity: 0.35; }
 .key.locked { opacity: 0.18; }
@@ -334,16 +334,12 @@ h1 {
 @keyframes freshpulse { from { box-shadow: 0 0 4px rgba(240,192,96,0.3); } to { box-shadow: 0 0 16px rgba(240,192,96,0.85); } }
 .key.target { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 10px rgba(240,192,96,0.45); }
 .finger {
-  position: absolute; width: 18px;
+  position: absolute;
   border: 1.5px solid rgba(242,237,227,0.28); background: rgba(242,237,227,0.05);
   border-radius: 9px; pointer-events: none;
   transition: transform 0.18s ease, border-color 0.18s, background 0.18s;
 }
 .finger.active { border-color: var(--gold); background: rgba(240,192,96,0.16); }
-.palm {
-  position: absolute; border: 1.5px solid rgba(242,237,227,0.18);
-  background: rgba(242,237,227,0.03); border-radius: 50%; pointer-events: none;
-}
 
 /* ============ OVERLAY SCREENS (collection, shop) ============ */
 .overlay {
@@ -359,6 +355,9 @@ h1 {
   text-align: center;
 }
 .overlay-title { font-family: var(--display); font-size: 13px; color: var(--gold); letter-spacing: 0.12em; margin-bottom: 16px; }
+.nudge-text { font-size: 13px; line-height: 1.5; color: var(--ink); max-width: 380px; margin: 0 auto 18px; }
+.nudge-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+#nudge-shop { color: var(--abyss); background: var(--gold); border-color: var(--gold); }
 #collection-grid {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px;
 }

@@ -58,6 +58,7 @@ export const CONFIG = {
   economy: {
     // coin values live in fish.json per fish; keep any global multipliers here
     firstCatchBonus: 2,     // extra coins the first time a species is caught
+    rodNudgeAt: 25,         // total catches that triggers the one-time "buy a rod" nudge
   },
 
   // Procedural audio (Web Audio synth, no external asset files — see M10 in

@@ -609,6 +609,7 @@ function land(success) {
     persistSave();                              // the one write per catch
     el.coins.textContent = save.coins;
     el.caught.textContent = totalCatches();
+    maybeShowRodNudge();
     coinFloat(140, 200, amount);
     const isRare = fish.tier === "rare" || fish.tier === "legendary";
     (isRare ? sfxRareCatch : sfxCatch)();
@@ -666,7 +667,7 @@ function recordKey(expected, correct) {
 
 // ---- Input ----
 document.addEventListener("keydown", (e) => {
-  if (!save || pickerOpen || collectionOpen || shopOpen || inputLocked) return;
+  if (!save || pickerOpen || collectionOpen || shopOpen || nudgeOpen || inputLocked) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key.length !== 1) return;
   const key = e.key.toLowerCase();
@@ -696,10 +697,14 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ---- Finger guide (ghost hands over a mini keyboard) ----
-const KB = { pitch: 42, rows: [
-  { keys: "qwertyuiop", off: 0 },
-  { keys: "asdfghjkl;", off: 12 },
-  { keys: "zxcvbnm",    off: 34 },
+const GUIDE_SCALE = 1.3;   // one knob: grows the whole keyboard/guide uniformly
+const S  = (n) => Math.round(n * GUIDE_SCALE);
+const KEY_SZ   = S(38);    // key box (matches the old .key size, now scaled)
+const FINGER_W = S(18);
+const KB = { pitch: S(42), rows: [
+  { keys: "qwertyuiop", off: S(0)  },
+  { keys: "asdfghjkl;", off: S(12) },
+  { keys: "zxcvbnm",    off: S(34) },
 ]};
 // Standard touch-typing zones. lp = left pinky ... rp = right pinky.
 const FINGER_HOMES = { lp:"a", lr:"s", lm:"d", li:"f", ri:"j", rm:"k", rr:"l", rp:";" };
@@ -713,36 +718,33 @@ const guide = $("guide");
 const keyPos = {}, fingerEls = {};
 let guideOn = true;
 
+guide.style.width  = S(430) + "px";   // was fixed in CSS; palms gone, so sized here
+guide.style.height = S(166) + "px";
+
 KB.rows.forEach((row, r) => {
   [...row.keys].forEach((ch, i) => {
     const x = row.off + i * KB.pitch, y = r * KB.pitch;
-    keyPos[ch] = { x: x + 19, y: y + 19 };
+    keyPos[ch] = { x: x + KEY_SZ / 2, y: y + KEY_SZ / 2 };
     const k = document.createElement("div");
     k.className = "key" + (ch === ";" ? " ghost-key" : "");
     k.textContent = ch;
     k.style.left = x + "px"; k.style.top = y + "px";
+    k.style.width = k.style.height = KEY_SZ + "px";
+    k.style.fontSize = S(14) + "px";
     k.dataset.ch = ch;
     guide.appendChild(k);
   });
-});
-
-// palms: one ghost oval per hand, below the keyboard
-[["s","d"],["k","l"]].forEach(([a, b]) => {
-  const cx = (keyPos[a].x + keyPos[b].x) / 2;
-  const p = document.createElement("div");
-  p.className = "palm";
-  p.style.width = "96px"; p.style.height = "64px";
-  p.style.left = (cx - 48) + "px"; p.style.top = "138px";
-  guide.appendChild(p);
 });
 
 // fingers: capsules with tips resting on their home keys
 Object.entries(FINGER_HOMES).forEach(([f, home]) => {
   const fin = document.createElement("div");
   fin.className = "finger";
-  fin.style.height = FINGER_LEN[f] + "px";
-  fin.style.left = (keyPos[home].x - 9) + "px";
-  fin.style.top = (keyPos[home].y - 12) + "px";
+  fin.style.width = FINGER_W + "px";
+  fin.style.borderRadius = FINGER_W / 2 + "px";
+  fin.style.height = S(FINGER_LEN[f]) + "px";
+  fin.style.left = (keyPos[home].x - FINGER_W / 2) + "px";
+  fin.style.top = (keyPos[home].y - S(12)) + "px";
   guide.appendChild(fin);
   fingerEls[f] = { el: fin, home };
 });
@@ -890,10 +892,28 @@ function toggleShop(open) {
 $("shop-btn").addEventListener("click", () => toggleShop(true));
 $("shop-close").addEventListener("click", () => toggleShop(false));
 
+// ---- One-time nudge: after ~25 catches, point players at a better rod ----
+let nudgeOpen = false;
+const nudgeRoot = $("rod-nudge");
+function toggleNudge(open) {
+  nudgeOpen = open ?? !nudgeOpen;
+  nudgeRoot.hidden = !nudgeOpen;
+}
+function maybeShowRodNudge() {
+  if (save.stats.rodNudgeShown || totalCatches() < CONFIG.economy.rodNudgeAt) return;
+  save.stats.rodNudgeShown = true;
+  persistSave();
+  if (save.upgrades.rod !== "stick") return;   // already upgraded — no need to nag
+  toggleNudge(true);
+}
+$("nudge-shop").addEventListener("click", () => { toggleNudge(false); toggleShop(true); });
+$("nudge-close").addEventListener("click", () => toggleNudge(false));
+
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (collectionOpen) toggleCollection(false);
   if (shopOpen) toggleShop(false);
+  if (nudgeOpen) toggleNudge(false);
 });
 
 // ---- Profile picker (shown on launch; gates the game until a kid is chosen) ----
