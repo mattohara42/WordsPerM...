@@ -61,6 +61,19 @@ export const CONFIG = {
     rodNudgeAt: 25,         // total catches that triggers the one-time "buy a rod" nudge
   },
 
+  // Every catch rolls a weight (lb) in its tier's range — pure flavor + a
+  // personal-best-per-species chase. No effect on coins or difficulty.
+  size: {
+    weightRangeByTier: {
+      common:    [0.2, 1.5],
+      uncommon:  [1,   4],
+      rare:      [4,   12],
+      legendary: [15,  45],
+    },
+    lunkerFrac: 0.85,   // top 15% of the range lands as a "LUNKER"
+    littleFrac: 0.15,   // bottom 15% lands as "a little one"
+  },
+
   // Procedural audio (Web Audio synth, no external asset files — see M10 in
   // BUILD_PLAN.md). Note pitches/melodies are sound-design content and live
   // next to PUNS in app.js; these are the tunable levels/knobs.

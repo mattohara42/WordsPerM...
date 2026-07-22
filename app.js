@@ -39,6 +39,7 @@ function blankProfile(name, avatar) {
     // shop needs to know what's already bought so it can't be re-purchased)
     upgrades: { rod: "stick", bait: "worm", owned: { rod: ["stick"], bait: ["worm"] } },
     collection: {},                                   // fishId → count
+    records: {},                                      // fishId → best weight (lb)
     stats: { letters: {}, wordsTyped: 0, escapes: 0, sessionCount: 0, lastPlayed: now },
     jokesEndured: 0,                                  // reserved (backlog groan counter)
   };
@@ -271,6 +272,17 @@ fitScene();
 
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const rand = (a, b) => a + Math.random() * (b - a);
+
+// roll a catch weight (lb) for a tier; returns { weight, cls } where cls is
+// "lunker" | "little" | "" for flavor. Falls back to the common range.
+function rollWeight(tier) {
+  const [min, max] = CONFIG.size.weightRangeByTier[tier] ?? CONFIG.size.weightRangeByTier.common;
+  const w = rand(min, max);
+  const frac = (w - min) / (max - min);
+  const cls = frac >= CONFIG.size.lunkerFrac ? "lunker"
+            : frac <= CONFIG.size.littleFrac ? "little" : "";
+  return { weight: Math.round(w * 10) / 10, cls };
+}
 
 function pickTier() {
   const odds = CONFIG.bite.tierOddsByRod[equippedRod().rodLevel];
@@ -606,6 +618,11 @@ function land(success) {
     const amount = fish.coins + (firstCatch ? CONFIG.economy.firstCatchBonus : 0);
     save.coins += amount;
     save.collection[fish.id] = (save.collection[fish.id] ?? 0) + 1;
+    // weight roll + personal-best tracking (flavor only, no coin/difficulty effect)
+    save.records ??= {};                        // back-compat for pre-records saves
+    const { weight, cls } = rollWeight(fish.tier);
+    const newBest = weight > (save.records[fish.id] ?? 0);
+    if (newBest) save.records[fish.id] = weight;
     persistSave();                              // the one write per catch
     el.coins.textContent = save.coins;
     el.caught.textContent = totalCatches();
@@ -614,7 +631,10 @@ function land(success) {
     const isRare = fish.tier === "rare" || fish.tier === "legendary";
     (isRare ? sfxRareCatch : sfxCatch)();
     const pun = isRare ? pick(PUNS.catchRare) : pick(PUNS.catchCommon);
-    setStatus((firstCatch ? "NEW! " : "") + pun + " — " + fish.name);
+    const sizeNote = ` — ${fish.name} (${weight} lb`
+      + (cls === "lunker" ? ", a LUNKER!" : cls === "little" ? ", a little one" : "")
+      + ")" + (newBest && !firstCatch ? " ★ new best!" : "");
+    setStatus((firstCatch ? "NEW! " : "") + pun + sizeNote);
     if (collectionOpen) renderCollection();
     const stagesAfter = unlockedStageCount(totalCatches());
     if (stagesAfter > stagesBefore) {
@@ -807,9 +827,12 @@ function renderCollection() {
     const name = document.createElement("div");
     name.className = "cname";
     name.textContent = count ? f.name : "???";
+    const best = (save.records ?? {})[f.id];
     const sub = document.createElement("div");
     sub.className = "csub";
-    sub.textContent = count ? `${f.species} × ${count}` : f.tier;
+    sub.textContent = count
+      ? `${f.species} × ${count}` + (best ? ` · best ${best} lb` : "")
+      : f.tier;
     if (count) cell.title = f.blurb;
     cell.append(shape, name, sub);
     collectionGrid.appendChild(cell);
