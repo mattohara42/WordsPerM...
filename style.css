@@ -58,6 +58,10 @@ h1 {
   width: 720px;
   height: 360px;
   overflow: hidden;
+  /* painted sky/hills/sun/water base art (M9 art pass); pixelated keeps it
+     crisp under the cover-scale transform */
+  background: url("assets/background.png") center center / cover no-repeat;
+  image-rendering: pixelated;
 }
 #scene.shake { animation: shake 0.3s; }
 @keyframes shake {
@@ -65,35 +69,11 @@ h1 {
   60% { transform: translate(-3px, 1px); } 80% { transform: translate(2px, -1px); }
 }
 
-#sky {
-  position: absolute; inset: 0 0 45% 0;
-  background: linear-gradient(180deg, var(--dusk-peach) 0%, var(--ember) 55%, var(--rose-dusk) 100%);
-}
-#sun {
-  position: absolute; left: 62%; top: 26%; width: 54px; height: 54px;
-  background: var(--gold); border-radius: 50%;
-  box-shadow: 0 0 34px 10px rgba(240,192,96,0.55);
-}
-.cloud {
-  position: absolute; height: 16px; border-radius: 8px;
-  background: rgba(245,183,138,0.55); filter: blur(3px);
-  animation: drift linear infinite;
-}
-@keyframes drift { from { transform: translateX(-140px); } to { transform: translateX(760px); } }
-
-.hills { position: absolute; left: -2%; width: 104%; height: 30%; }
-#hills-far {
-  top: 30%; background: var(--plum);
-  clip-path: polygon(0 70%, 10% 45%, 22% 62%, 36% 38%, 52% 60%, 66% 42%, 80% 58%, 92% 46%, 100% 60%, 100% 100%, 0 100%);
-}
-#hills-near {
-  top: 37%; background: var(--deep-plum);
-  clip-path: polygon(0 60%, 14% 78%, 26% 52%, 40% 72%, 55% 50%, 70% 70%, 84% 54%, 100% 72%, 100% 100%, 0 100%);
-}
-
+/* #water is now just the container for the animated wave/glitter overlays
+   that ride on top of the painted water; its top matches the background's
+   horizon line (measured ~55% down the image) */
 #water {
-  position: absolute; left: 0; right: 0; top: 52%; bottom: 0;
-  background: linear-gradient(180deg, var(--water-teal) 0%, var(--water-mid) 45%, var(--water-deep) 80%, var(--abyss) 100%);
+  position: absolute; left: 0; right: 0; top: 55%; bottom: 0;
 }
 .wave { position: absolute; left: 0; width: 200%; height: 42px; opacity: 0.5; }
 .wave svg { width: 100%; height: 100%; display: block; }
@@ -121,46 +101,30 @@ h1 {
 }
 @keyframes shadowDrift { from { transform: translateX(0); } to { transform: translateX(820px); } }
 
-/* boat rig bobs as one unit — sits at the waterline (#water starts at top: 52%) */
-#rig { position: absolute; left: 26px; top: 178px; animation: bob 4.5s ease-in-out infinite; }
+/* boat rig bobs as one unit — sits at the waterline (#water starts at top: 55%) */
+#rig { position: absolute; left: 20px; top: 168px; animation: bob 4.5s ease-in-out infinite; }
 @keyframes bob { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(4px) rotate(0.8deg); } }
-/* hull silhouette: flat stern (left), pointed bow (right, toward the cast) */
+/* boat/kid are now real sprites (M9 art pass); sizes/positions in design-space
+   px, tuned so the boat sits on the waterline and the kid rides in it. The
+   kid sprite has the rod baked in, so #line originates at the sprite's rod tip
+   (upper-right of the kid image). */
 #boat {
-  position: relative; width: 90px; height: 30px;
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--deep-plum) 100%, white 15%) 0%,
-    var(--deep-plum) 55%,
-    color-mix(in srgb, var(--deep-plum) 100%, black 25%) 100%);
-  clip-path: polygon(0% 32%, 5% 100%, 82% 100%, 100% 54%, 87% 18%, 38% 8%);
-}
-#boat::before { /* gunwale rim highlight */
-  content: ""; position: absolute; left: 4%; top: 10%; width: 78%; height: 3px;
-  background: rgba(255,255,255,0.22); border-radius: 2px;
-}
-#boat::after { /* water-reflection shadow */
-  content:""; position:absolute; left:6px; top:26px; width:78px; height:6px;
-  background: rgba(10,25,35,0.4); border-radius: 4px; filter: blur(2px);
+  position: absolute; left: 0; top: 8px; width: 118px; height: 48px;
+  background: url("assets/boat.png") center / contain no-repeat;
+  image-rendering: pixelated;
 }
 #kid {
-  position: absolute; left: 18px; top: -22px; width: 16px; height: 24px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 100%, white 18%) 0%, var(--gold) 100%);
-  border-radius: 5px 5px 2px 2px;
+  position: absolute; left: 34px; top: -30px; width: 64px; height: 63px;
+  background: url("assets/kid.png") center / contain no-repeat;
+  image-rendering: pixelated;
 }
-#kid::before { /* head — kept palette-neutral rather than a specific skin tone */
-  content: ""; position: absolute; left: 1px; top: -12px; width: 14px; height: 13px;
-  border-radius: 50%; background: var(--ink);
-}
-#kid::after { /* sun-hat */
-  content: ""; position: absolute; left: -1px; top: -15px; width: 16px; height: 7px;
-  background: var(--ember); border-radius: 8px 8px 2px 2px;
-}
-#rod { position: absolute; left: 32px; top: -30px; width: 40px; height: 3px; background: var(--deep-plum); transform: rotate(-24deg); border-radius: 2px; }
-/* angle/length solved so the line's end lands exactly on #bobber's center
-   (rig at 26,178 + this offset -> bobber at left:388 top:190, ~11px wide) */
+/* line runs from the kid sprite's rod tip (rig-relative ~97,-25) to the
+   bobber center (design 388,190); solved so a 275px line at this angle lands
+   on the bobber */
 #line {
-  position: absolute; left: 70px; top: -20px; height: 2px; width: 0;
-  background: rgba(242,237,227,0.6);
-  transform-origin: left center; transform: rotate(7.2deg);
+  position: absolute; left: 97px; top: -25px; height: 2px; width: 0;
+  background: rgba(242,237,227,0.7);
+  transform-origin: left center; transform: rotate(9.8deg);
   transition: width 0.4s ease;
 }
 
@@ -203,44 +167,31 @@ h1 {
 }
 @keyframes sway { from { transform: rotate(-2.4deg); } to { transform: rotate(2.6deg); } }
 
-/* fish body color comes from data/fish.json via --fish-color;
-   rarer tiers add glow. Still CSS shapes (no CC0 sprite pack could be
-   reached from this environment — see M9 notes), but layered/shaded
-   rather than a flat rectangle: oval body + gradient shading, a
-   clip-path tail and dorsal fin as real children (so they animate along
-   with the parent's swim-wobble/landing-arc transforms for free), a
-   two-tone eye and belly highlight via the two pseudo-element slots. */
+/* fish is now a real sprite (M9 art pass), swapped by rarity tier. The art
+   faces left (head toward the boat), matching the swim/landing direction.
+   Three tier images cover four tiers: common+uncommon share the common
+   sprite, rare and legendary get their own. */
+/* left/top are driven every frame by the reel RAF (so the line can stay glued
+   to the fish), so NO left/top transition here — a transition would smear the
+   fish behind its per-frame target. Only opacity eases. */
 #fish {
-  position: absolute; top: 250px; width: 56px; height: 26px;
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--fish-color, var(--moss)) 100%, white 22%) 0%,
-    var(--fish-color, var(--moss)) 55%,
-    color-mix(in srgb, var(--fish-color, var(--moss)) 100%, black 18%) 100%);
-  border-radius: 50% 40% 40% 50% / 60% 60% 40% 40%;
+  position: absolute; top: 244px; width: 62px; height: 41px;
+  background: url("assets/fish-common.png") center / contain no-repeat;
+  image-rendering: pixelated;
   opacity: 0;
-  transition: left 0.35s ease, opacity 0.3s ease, top 0.35s ease;
+  transition: opacity 0.3s ease;
 }
-#fish::before { /* eye: two-tone via one radial-gradient */
-  content:""; position:absolute; left:11px; top:6px; width:8px; height:8px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 65% 35%, var(--abyss) 0 35%, var(--foam) 40% 100%);
+/* uncommon shares the common sprite but hue-shifted so it reads as a
+   different fish (no dedicated uncommon art) */
+#fish.tier-uncommon { filter: hue-rotate(150deg) saturate(1.2); }
+#fish.tier-rare {
+  background-image: url("assets/fish-rare.png");
+  filter: drop-shadow(0 0 8px rgba(240,192,96,0.7));
 }
-#fish::after { /* soft belly highlight */
-  content:""; position:absolute; left:6px; bottom:3px; width:34px; height:7px;
-  border-radius: 50%; background: rgba(255,255,255,0.16); filter: blur(1px);
+#fish.tier-legendary {
+  background-image: url("assets/fish-legendary.png");
+  filter: drop-shadow(0 0 12px rgba(240,192,96,0.9));
 }
-.fish-tail {
-  position: absolute; right: -15px; top: 2px; width: 19px; height: 22px;
-  background: var(--fish-color, var(--moss)); filter: brightness(0.92);
-  clip-path: polygon(0% 20%, 100% 0%, 62% 50%, 100% 100%, 0% 80%);
-}
-.fish-fin {
-  position: absolute; top: -7px; left: 21px; width: 15px; height: 11px;
-  background: var(--fish-color, var(--moss)); filter: brightness(0.88);
-  clip-path: polygon(0% 100%, 55% 0%, 100% 100%);
-}
-#fish.tier-rare { box-shadow: 0 0 14px rgba(240,192,96,0.7); }
-#fish.tier-legendary { box-shadow: 0 0 22px 6px rgba(240,192,96,0.9); }
 #fish.landing { animation: fishArc 0.7s ease forwards; }
 @keyframes fishArc {
   40% { transform: translate(-30px, -90px) rotate(-30deg); }

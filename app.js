@@ -466,29 +466,52 @@ function renderTension() {
   el.fill.style.background = tension > 66 ? "var(--ember)" : tension > 33 ? "var(--gold)" : "var(--moss)";
   el.fill.classList.toggle("danger", tension > 66);
 }
-function fishPosition() {
-  // far-x kept inside the range that stays on-screen even on the narrowest
-  // common desktop aspect ratios under M9's cover-scaled scene (a spawn
-  // point out past ~500px design-x was landing off-screen on 16:10 windows)
-  const progress = 1 - wordsLeft / wordsToLand;
-  el.fish.style.left = (470 - progress * 330) + "px";
-}
 function setStatus(t) { el.status.textContent = t; }
 
-// idle swimming wobble, layered on top of the word-driven approach toward the
-// boat — fishPosition() still owns net progress, this just keeps it alive
-// between words instead of sliding in a dead-straight line
+// ---- Reel animation: the fish rises from the depths and is reeled toward the
+// boat, with the fishing line redrawn every frame from the rod tip to the
+// fish's mouth so it stays attached (shortening/re-angling as the fish nears).
+// All coords are design-space px on the 720x360 canvas. ----
 const REDUCE_MOTION = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const LINE_ORIGIN = { x: 117, y: 143 };   // the kid sprite's rod tip, in scene coords
 let swimRAF = null, swimStart = 0;
+let fishX = 0, fishY = 0, fishTX = 0, fishTY = 0;   // current + target fish position
+
+// target for the current reel progress: starts deep-and-right, ends near the
+// boat at the surface, so reeling pulls the fish up and in
+function setFishTarget() {
+  const progress = 1 - wordsLeft / wordsToLand;   // 0 at bite, 1 at land
+  fishTX = 430 - progress * 280;                  // 430 -> 150 (toward the boat)
+  // kept above the bottom-center ghost-hands panel so the fish stays visible
+  // while it's reeled across; the "up from the depths" dip is the spawn offset
+  fishTY = 232 - progress * 16;                    // 232 -> 216 (near the surface)
+}
+
+// aim the line from the rod tip to the fish's mouth (left edge; the art faces left)
+function lineToFish(fishLeft, fishTop) {
+  const dx = (fishLeft + 6) - LINE_ORIGIN.x;
+  const dy = (fishTop + 20) - LINE_ORIGIN.y;
+  el.line.style.width = Math.hypot(dx, dy) + "px";
+  el.line.style.transform = `rotate(${Math.atan2(dy, dx) * 180 / Math.PI}deg)`;
+}
+function drawFish(x, y) {
+  el.fish.style.left = x + "px";
+  el.fish.style.top = y + "px";
+  lineToFish(x, y);
+}
+
 function startSwim() {
-  if (REDUCE_MOTION) return;
+  el.line.style.transition = "none";   // the RAF drives the line now — no easing lag
+  if (REDUCE_MOTION) { fishX = fishTX; fishY = fishTY; drawFish(fishTX, fishTY); return; }
   swimStart = performance.now();
   const step = (now) => {
     if (phase !== "reel") return;
+    fishX += (fishTX - fishX) * 0.08;   // ease toward the target each frame
+    fishY += (fishTY - fishY) * 0.08;
     const t = (now - swimStart) / 1000;
-    const wobbleY = Math.sin(t * 1.6) * 7 + Math.sin(t * 3.7) * 2;
-    const wobbleX = Math.sin(t * 0.9) * 5;
-    el.fish.style.transform = `translate(${wobbleX.toFixed(1)}px, ${wobbleY.toFixed(1)}px)`;
+    const wobX = Math.sin(t * 0.9) * 5;
+    const wobY = Math.sin(t * 1.6) * 7 + Math.sin(t * 3.7) * 2;
+    drawFish(fishX + wobX, fishY + wobY);
     swimRAF = requestAnimationFrame(step);
   };
   swimRAF = requestAnimationFrame(step);
@@ -496,7 +519,6 @@ function startSwim() {
 function stopSwim() {
   if (swimRAF) cancelAnimationFrame(swimRAF);
   swimRAF = null;
-  el.fish.style.transform = "";
 }
 
 // ---- Phases ----
@@ -505,6 +527,8 @@ function startCast() {
   target = pick(WORDS).w; typed = 0; lastKeyTime = 0;
   tension = 0; renderTension();
   el.dist.textContent = "—";
+  el.line.style.transition = "";     // restore the CSS ease for the next cast
+  el.line.style.transform = "";      // back to the CSS rotate aimed at the bobber
   el.line.style.width = "0px";
   bobberOut(false);
   el.fish.style.opacity = 0;
@@ -519,7 +543,7 @@ function startWait() {
   phase = "wait"; inputLocked = true;
   el.word.textContent = "";
   updateGuide(null);
-  el.line.style.width = "300px";
+  el.line.style.width = "275px";   // reaches the bobber at #line's origin/angle
   burst(400, 195, 5);
   sfxSplash();
   bobberIn();
@@ -538,7 +562,8 @@ function bite() {
   el.fish.classList.add("tier-" + tier, "hooked");
   el.fish.style.setProperty("--fish-color", fish.color);
   el.fish.style.opacity = 1;
-  fishPosition();
+  setFishTarget();
+  fishX = fishTX + 30; fishY = fishTY + 56;   // emerge deep & right of the panel, then rise up-and-in
   el.dist.textContent = wordsLeft + " words";
   shakeScene();
   burst(410, 200, 10);
@@ -554,7 +579,8 @@ function nextReelWord() { target = pick(reelPool).w; typed = 0; lastKeyTime = 0;
 function wordComplete() {
   wordsLeft--;
   el.dist.textContent = wordsLeft > 0 ? wordsLeft + " words" : "landing…";
-  fishPosition();
+  setFishTarget();
+  if (REDUCE_MOTION) drawFish(fishTX, fishTY);
   burst(parseInt(el.fish.style.left) + 28, 258, 4);
   ripple(parseInt(el.fish.style.left) + 28, 262);
   sfxWordTick();
@@ -569,6 +595,7 @@ function wordComplete() {
 function land(success) {
   phase = "done"; inputLocked = true;
   stopSwim();
+  el.line.style.width = "0px";    // reel the line all the way in
   el.word.textContent = "";
   updateGuide(null);
   if (success) {
