@@ -42,6 +42,7 @@ not truncation). Pass that exact string to the GitHub tools; no lookup needed.
 - If a requirement is ambiguous: for structural/architectural questions, ask;
   for small reversible details, pick the most reasonable option and record
   the assumption in the PR/commit message.
+- **Open PRs ready for review, not as drafts** (Matt's preference, July 2026).
 
 ## The user
 
