@@ -42,10 +42,25 @@ export const CONFIG = {
     celebrateMs: 2600,      // how long the "new letters!" banner holds the stage
   },
 
+  // Advanced Progression tiers (BUILD_PLAN_ADVANCED A0). Ordered easiest→hardest.
+  // A profile's rank derives from the furthest location it has unlocked (rods
+  // unlock locations — see shop.rods[].unlocksLocation); `location` is where the
+  // kid is currently fishing. Pond/Minnow is always open and never changes (no
+  // timers, no speed pressure). Muskie is a prestige rank awarded on the
+  // legendary catch (A8), not a location — so it isn't in this table.
+  tiers: [
+    { rank: "minnow",   location: "pond",   locationName: "the Pond",   label: "Minnow Wrangler", badge: "🐟" },
+    { rank: "mackerel", location: "stream", locationName: "the Stream", label: "Mackerel Master", badge: "🎣" },
+    { rank: "marlin",   location: "ocean",  locationName: "the Ocean",  label: "Marlin Hunter",   badge: "🗡️" },
+  ],
+
   shop: {
+    // `unlocksLocation` graduates the profile to a new fishing spot on purchase
+    // (A0). Ocean's dedicated deep-sea rod arrives in A6; carbon stays a pure
+    // luck upgrade until then. ponytail: only the Stream gate exists for A0.
     rods: [
       { id: "stick",  name: "Trusty Stick",     cost: 0,  rodLevel: 1 },
-      { id: "bamboo", name: "Bamboo Beauty",    cost: 25, rodLevel: 2 },
+      { id: "bamboo", name: "Bamboo Beauty",    cost: 25, rodLevel: 2, unlocksLocation: "stream" },
       { id: "carbon", name: "The Carp Whisperer", cost: 80, rodLevel: 3 },
     ],
     baits: [

@@ -4,9 +4,9 @@ Companion to `SPEC.md`, `BUILD_PLAN.md` (v1), and the **Advanced Progression**
 epic in `BACKLOG.md`. This breaks the epic into sized, ordered, verifiable
 milestones — same rules as v1: **one milestone at a time, each ends playable.**
 
-**Status:** planned, not started. **Prerequisite:** close v1 (M4b Firestore
-live-verified) first — this epic adds new save fields, so it wants a stable sync
-base and a clean migration story.
+**Status:** A0 done (2026-07-23); A1 is next. **Prerequisite:** close v1 (M4b
+Firestore live-verified) first — this epic adds new save fields, so it wants a
+stable sync base and a clean migration story. (Met — v1 complete.)
 
 ## Guardrails (inherited, non-negotiable)
 
@@ -35,7 +35,7 @@ base and a clean migration story.
 
 ## Phase 0 — Foundation (shared plumbing)
 
-### A0 — Rank & location model + graduation gate + rank-up ceremony
+### ✅ A0 — Rank & location model + graduation gate + rank-up ceremony (done 2026-07-23)
 The skeleton every tier rides on; **no new content yet** (Stream/Ocean
 temporarily serve existing words so the plumbing is verifiable in isolation).
 - `config.js`: `CONFIG.tiers` (Minnow/Mackerel/Marlin/Muskie → location, rod,
