@@ -4,7 +4,8 @@ Companion to `SPEC.md`, `BUILD_PLAN.md` (v1), and the **Advanced Progression**
 epic in `BACKLOG.md`. This breaks the epic into sized, ordered, verifiable
 milestones — same rules as v1: **one milestone at a time, each ends playable.**
 
-**Status:** A2 done (2026-07-23); A3 is next. **Prerequisite:** close v1 (M4b
+**Status:** A3 code-complete (2026-07-23) — the only outstanding piece is the
+Stream background PNG (art request in `ART.md`); A4 is next. **Prerequisite:** close v1 (M4b
 Firestore live-verified) first — this epic adds new save fields, so it wants a
 stable sync base and a clean migration story. (Met — v1 complete.)
 
@@ -81,14 +82,23 @@ temporarily serve existing words so the plumbing is verifiable in isolation).
   animates the Shift press. *(Verified: 39 unit tests + a case-handling reel
   simulation; guide reach verified by the finger/hand mapping.)*
 
-### A3 — Stream fish set + biome scene
-- `data/fish.json`: add `location:"stream"` fish (trout, salmon, grayling…)
-  across the existing 3 rarity tiers.
-- `ART.md`: Stream background + stream-fish sprites (Gemini prompts → Matt).
-- `app.js`: scene swap by `save.location` (reuse the M9 `#scene-frame` scaler);
+### 🟡 A3 — Stream fish set + biome scene (code-complete 2026-07-23; Stream background pending art)
+- `data/fish.json`: existing 10 fish tagged `location:"pond"`; **9 `location:
+  "stream"` fish** (dace, chub, trout, salmon…) across common/uncommon/rare.
+  They reuse the shared per-tier sprites tinted by `color`, so **no per-fish
+  art** — Muskie stays the Pond legendary until the Ocean/A8.
+- `logic.js`: `tierWithFallback()` (+ test) so a rolled tier the spot lacks (the
+  Stream has no legendary yet) degrades to the nearest present tier.
+- `app.js`: `bite()` picks fish by `save.location` with that fallback;
+  `applyScene()` swaps the biome via a `loc-<location>` class on `#scene`; the
   collection screen groups silhouettes by location.
+- `ART.md`: the one real art request — `assets/background-stream.png` — already
+  wired (`#scene.loc-stream` layers it over the pond scene, self-resolving).
 - **Done when:** entering the Stream shows the stream scene and its own fish
-  silhouettes; catching a stream species flips its silhouette.
+  silhouettes; catching a stream species flips its silhouette. *(Code + fish +
+  collection grouping done and verified — 42 unit tests + a fish-selection sim;
+  the **scene visual is the pond scene until `background-stream.png` lands**,
+  then it appears with no code change.)*
 
 ### A4 — Fly-cast rhythm mechanic + WPM personal-best (intro)
 - `logic.js`: `computeWpm()`, `isPersonalBestWpm()` + tests; migrate `records`

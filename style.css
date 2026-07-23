@@ -63,6 +63,15 @@ h1 {
   background: url("assets/background.png") center center / cover no-repeat;
   image-rendering: pixelated;
 }
+/* A3: the Stream biome. The stream art layers OVER the pond art, so before
+   assets/background-stream.png exists the pond scene shows through unchanged;
+   once Matt drops the PNG it covers the pond layer with zero code change. */
+#scene.loc-stream {
+  background-image: url("assets/background-stream.png"), url("assets/background.png");
+  background-position: center center, center center;
+  background-size: cover, cover;
+  background-repeat: no-repeat, no-repeat;
+}
 #scene.shake { animation: shake 0.3s; }
 @keyframes shake {
   20% { transform: translate(-5px, 2px); } 40% { transform: translate(4px, -2px); }
@@ -437,6 +446,13 @@ h1 {
 #collection-grid {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px;
 }
+/* A3: a full-width location heading that groups the silhouettes below it */
+.cgroup {
+  grid-column: 1 / -1; margin: 4px 0 -2px;
+  font-family: var(--display); font-size: 13px; color: var(--gold);
+  border-bottom: 1px solid rgba(240,192,96,0.25); padding-bottom: 6px;
+}
+.cgroup:first-child { margin-top: 0; }
 .cell {
   width: 116px; padding: 10px 6px 12px; border-radius: 10px;
   background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);

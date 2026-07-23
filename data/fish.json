@@ -1,12 +1,22 @@
 [
-  {"id": "bluegill",   "name": "Sunny Gill",        "species": "Bluegill",          "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#8fbf88", "blurb": "Always smiling. Has no idea why."},
-  {"id": "perch",      "name": "Perch-ance",        "species": "Yellow Perch",      "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#c9b458", "blurb": "To dream? No — to snack."},
-  {"id": "minnow",     "name": "Minnie Minnow",     "species": "Fathead Minnow",    "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#9db4b8", "blurb": "Small fish, big pond, no complaints."},
-  {"id": "pumpkinseed","name": "Pun-kinseed",       "species": "Pumpkinseed",       "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#e8a45b", "blurb": "The most gourd-geous fish in the pond."},
-  {"id": "carp",       "name": "Carp Diem",         "species": "Common Carp",       "tier": "uncommon",  "difficulty": 2, "coins": 3,  "color": "#b08a5f", "blurb": "Seizes the day. And the bait. Mostly the bait."},
-  {"id": "bass",       "name": "Bass-ically Famous","species": "Largemouth Bass",   "tier": "uncommon",  "difficulty": 2, "coins": 3,  "color": "#6e9c68", "blurb": "Been on three magazine covers. Mentions it constantly."},
-  {"id": "trout",      "name": "Sir Trout-a-Lot",   "species": "Brook Trout",       "tier": "uncommon",  "difficulty": 2, "coins": 3,  "color": "#c96a83", "blurb": "Knighted for services to swimming upstream."},
-  {"id": "pike",       "name": "The Duke of Pike",  "species": "Northern Pike",     "tier": "rare",      "difficulty": 3, "coins": 8,  "color": "#4a7a96", "blurb": "Old money. Older teeth."},
-  {"id": "walleye",    "name": "Walter the Legend", "species": "Walleye",           "tier": "rare",      "difficulty": 3, "coins": 8,  "color": "#f0c060", "blurb": "Every pond has a Walter. This one's ours."},
-  {"id": "muskie",     "name": "Muskie Quixote",    "species": "Muskellunge",       "tier": "legendary", "difficulty": 4, "coins": 20, "color": "#d4c5f0", "blurb": "Tilting at bobbers since forever. The fish of ten thousand casts."}
+  {"id": "bluegill",   "name": "Sunny Gill",        "species": "Bluegill",          "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#8fbf88", "location": "pond",   "blurb": "Always smiling. Has no idea why."},
+  {"id": "perch",      "name": "Perch-ance",        "species": "Yellow Perch",      "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#c9b458", "location": "pond",   "blurb": "To dream? No — to snack."},
+  {"id": "minnow",     "name": "Minnie Minnow",     "species": "Fathead Minnow",    "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#9db4b8", "location": "pond",   "blurb": "Small fish, big pond, no complaints."},
+  {"id": "pumpkinseed","name": "Pun-kinseed",       "species": "Pumpkinseed",       "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#e8a45b", "location": "pond",   "blurb": "The most gourd-geous fish in the pond."},
+  {"id": "carp",       "name": "Carp Diem",         "species": "Common Carp",       "tier": "uncommon",  "difficulty": 2, "coins": 3,  "color": "#b08a5f", "location": "pond",   "blurb": "Seizes the day. And the bait. Mostly the bait."},
+  {"id": "bass",       "name": "Bass-ically Famous","species": "Largemouth Bass",   "tier": "uncommon",  "difficulty": 2, "coins": 3,  "color": "#6e9c68", "location": "pond",   "blurb": "Been on three magazine covers. Mentions it constantly."},
+  {"id": "trout",      "name": "Sir Trout-a-Lot",   "species": "Brook Trout",       "tier": "uncommon",  "difficulty": 2, "coins": 3,  "color": "#c96a83", "location": "pond",   "blurb": "Knighted for services to swimming upstream."},
+  {"id": "pike",       "name": "The Duke of Pike",  "species": "Northern Pike",     "tier": "rare",      "difficulty": 3, "coins": 8,  "color": "#4a7a96", "location": "pond",   "blurb": "Old money. Older teeth."},
+  {"id": "walleye",    "name": "Walter the Legend", "species": "Walleye",           "tier": "rare",      "difficulty": 3, "coins": 8,  "color": "#f0c060", "location": "pond",   "blurb": "Every pond has a Walter. This one's ours."},
+  {"id": "muskie",     "name": "Muskie Quixote",    "species": "Muskellunge",       "tier": "legendary", "difficulty": 4, "coins": 20, "color": "#d4c5f0", "location": "pond",   "blurb": "Tilting at bobbers since forever. The fish of ten thousand casts."},
+
+  {"id": "dace",       "name": "Dace to Meet You",  "species": "Common Dace",       "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#a9c2cf", "location": "stream", "blurb": "Darts off before the handshake. Every time."},
+  {"id": "chub",       "name": "Chub-by Cheeks",    "species": "Creek Chub",        "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#b7a07a", "location": "stream", "blurb": "Hangs out under the same rock. It's a whole thing."},
+  {"id": "stickleback","name": "Stick Around",      "species": "Three-spined Stickleback", "tier": "common", "difficulty": 1, "coins": 1, "color": "#8fae86", "location": "stream", "blurb": "Tiny, spiky, and weirdly proud of it."},
+  {"id": "sculpin",    "name": "Sculpin the Deep",  "species": "River Sculpin",     "tier": "common",    "difficulty": 1, "coins": 1,  "color": "#9a8b6f", "location": "stream", "blurb": "A face only a riverbed could love."},
+  {"id": "rainbowtrout","name": "Roy G. Biv",       "species": "Rainbow Trout",     "tier": "uncommon",  "difficulty": 2, "coins": 3,  "color": "#d98fa0", "location": "stream", "blurb": "Contractually obligated to look this good."},
+  {"id": "browntrout", "name": "Brown-ie Points",   "species": "Brown Trout",       "tier": "uncommon",  "difficulty": 2, "coins": 3,  "color": "#a9773f", "location": "stream", "blurb": "Earns them constantly. Cashes them never."},
+  {"id": "grayling",   "name": "Grayling Skies",    "species": "Arctic Grayling",   "tier": "uncommon",  "difficulty": 2, "coins": 3,  "color": "#7f9bc4", "location": "stream", "blurb": "That big sail fin? Purely for the drama."},
+  {"id": "steelhead",  "name": "Steel-headstrong",  "species": "Steelhead",         "tier": "rare",      "difficulty": 3, "coins": 8,  "color": "#8fa6b8", "location": "stream", "blurb": "Swam to the ocean and back just to prove a point."},
+  {"id": "salmon",     "name": "Salmon Chanted Evening", "species": "Chinook Salmon","tier": "rare",     "difficulty": 3, "coins": 8,  "color": "#e08a6a", "location": "stream", "blurb": "Upstream, uphill, against the odds. Very inspirational."}
 ]

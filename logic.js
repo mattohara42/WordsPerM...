@@ -136,3 +136,16 @@ export function tokenize(text) {
 export function wordCount(text) {
   return tokenize(text).filter(t => t.type === "word").length;
 }
+
+// The tier to actually serve when a rolled tier has no fish at the current spot
+// (A3): step down the rarity order (hardest→easiest) to the first present tier,
+// then up if still none. e.g. the Stream has no legendary yet, so a legendary
+// roll there lands a rare. Returns `desired` untouched if nothing is present
+// (the caller then handles an empty pick).
+export function tierWithFallback(tiersPresent, desired, order) {
+  const start = order.indexOf(desired);
+  if (start < 0) return desired;
+  for (let i = start; i < order.length; i++) if (tiersPresent.has(order[i])) return order[i];
+  for (let i = start - 1; i >= 0; i--) if (tiersPresent.has(order[i])) return order[i];
+  return desired;
+}

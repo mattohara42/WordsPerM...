@@ -78,3 +78,34 @@ subject. Re-exporting cleanly from Gemini is better when you can get it.
 > Pixel art <subject>, cozy retro game asset, chunky clean pixels, warm dawn
 > lake palette (teal water, muted purple hills, warm sky, gold accents), single
 > centered subject, transparent background, no text, no shadow. <extra detail>.
+
+## Open art requests
+
+### A3 — the Stream biome (only real art A3 needs)
+
+The Stream's **fish need no art**: they reuse the shared per-tier sprites
+(`fish-common/rare/legendary.png`) tinted by each species' `color` in
+`data/fish.json` (dace, chub, trout, salmon…). Only the **background scene** is
+outstanding, and it's already wired to appear the moment the file exists.
+
+```
+ART NEEDED: the Stream fishing scene (Mackerel tier background)
+Prompt:   Pixel art side-view of a cozy forest stream for a fishing game,
+          chunky clean pixels, warm dawn palette but cooler and greener than the
+          pond — teal-to-emerald flowing water, mossy banks, smooth river rocks,
+          overhanging ferns and reeds, a few pines and muted purple hills behind,
+          warm sky with soft gold light. A calm shallow riffle in the middle
+          where a boat/kid can sit at the waterline (waterline ~55% down, like
+          the pond scene). No text, no UI, no characters, no boat, no fish, no
+          watermark, no baked-in shadow. Landscape scene, fills the frame.
+Save as:  assets/background-stream.png
+Size:     match assets/background.png's aspect (~1152×466 / roughly 2.47:1),
+          waterline at ~55% height so the existing boat/bobber/fish positions sit
+          right; pixelated-friendly, opaque full-bleed (a scene, not a sprite).
+Wired in: style.css `#scene.loc-stream` layers this over the pond background, so
+          it lights up automatically when the file lands — no code change needed.
+```
+
+Until this PNG exists the Stream simply shows the pond scene (the fish, the
+location label, and the collection are already Stream-aware). Ocean scene +
+ocean fish come later (A6).
