@@ -4,7 +4,7 @@ Companion to `SPEC.md`, `BUILD_PLAN.md` (v1), and the **Advanced Progression**
 epic in `BACKLOG.md`. This breaks the epic into sized, ordered, verifiable
 milestones — same rules as v1: **one milestone at a time, each ends playable.**
 
-**Status:** A1 done (2026-07-23); A2 is next. **Prerequisite:** close v1 (M4b
+**Status:** A2 done (2026-07-23); A3 is next. **Prerequisite:** close v1 (M4b
 Firestore live-verified) first — this epic adds new save fields, so it wants a
 stable sync base and a clean migration story. (Met — v1 complete.)
 
@@ -66,12 +66,20 @@ temporarily serve existing words so the plumbing is verifiable in isolation).
   spacebar; a slow careful typist still always lands; tension reacts to errors
   only. *(Verified: 38 unit tests + a faithful phrase-reel guardrail simulation.)*
 
-### A2 — Capitals via Shift (+ finger guide)
-- `config.js`: capitals unlock (Shift) as a Stream-entry requirement.
-- `app.js`: Shift handling in keystroke processing + `statLetter`; ghost-hands
-  overlay shows the Shift reach.
+### ✅ A2 — Capitals via Shift (+ finger guide) (done 2026-07-23)
+- `config.js`: `CONFIG.capitals.fromLocations` — capitals are a Stream+ feature;
+  the Pond stays lowercase-only. The data test enforces it.
+- `data/phrases.json`: capitalised Stream phrases (Title Case + proper-noun
+  names) at `d:2`, so capitals ramp in with uncommon+ catches while common
+  catches stay lowercase.
+- `app.js`: case-aware keystroke matching — a **capital target must be typed
+  with Shift** (exact case), while a lowercase target accepts either case so the
+  Pond is untouched; `recordKey` folds capitals into their base-letter stat
+  bucket; the finger guide gains two **Shift keys** and animates the opposite
+  hand's pinky reaching for Shift on a capital.
 - **Done when:** a phrase containing a capital reels correctly and the guide
-  animates the Shift press.
+  animates the Shift press. *(Verified: 39 unit tests + a case-handling reel
+  simulation; guide reach verified by the finger/hand mapping.)*
 
 ### A3 — Stream fish set + biome scene
 - `data/fish.json`: add `location:"stream"` fish (trout, salmon, grayling…)

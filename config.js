@@ -55,6 +55,12 @@ export const CONFIG = {
     { rank: "marlin",   location: "ocean",  locationName: "the Ocean",  label: "Marlin Hunter",   badge: "🗡️" },
   ],
 
+  // Capitals (Shift) enter at the Stream (A2 / AD6): only phrases at graduated
+  // spots carry capital letters — the Pond stays lowercase-only (a v1 promise,
+  // and Shift is harmless there). The data test enforces that no capital appears
+  // in content tagged for any other location.
+  capitals: { fromLocations: ["stream", "ocean"] },
+
   shop: {
     // `unlocksLocation` graduates the profile to a new fishing spot on purchase
     // (A0). Ocean's dedicated deep-sea rod arrives in A6; carbon stays a pure

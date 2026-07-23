@@ -13,5 +13,15 @@
   {"text":"a lad had a flag","letters":"adfghl","d":1,"theme":"home-row","location":"stream"},
   {"text":"glad dads","letters":"adgls","d":1,"theme":"home-row","location":"stream"},
   {"text":"salad lads","letters":"adls","d":1,"theme":"home-row","location":"stream"},
-  {"text":"ask a lass","letters":"akls","d":1,"theme":"home-row","location":"stream"}
+  {"text":"ask a lass","letters":"akls","d":1,"theme":"home-row","location":"stream"},
+  {"text":"Ask Dad","letters":"adks","d":2,"theme":"home-row-caps","location":"stream"},
+  {"text":"Sad Lad","letters":"adls","d":2,"theme":"home-row-caps","location":"stream"},
+  {"text":"Glad Lads","letters":"adgls","d":2,"theme":"home-row-caps","location":"stream"},
+  {"text":"Half A Salad","letters":"adfhls","d":2,"theme":"home-row-caps","location":"stream"},
+  {"text":"Dad Had Gas","letters":"adghs","d":2,"theme":"home-row-caps","location":"stream"},
+  {"text":"Lads Dash","letters":"adhls","d":2,"theme":"home-row-caps","location":"stream"},
+  {"text":"A Glass Flask","letters":"afgkls","d":2,"theme":"home-row-caps","location":"stream"},
+  {"text":"ask Hal","letters":"ahkls","d":2,"theme":"home-row-caps","location":"stream"},
+  {"text":"Hal has a flask","letters":"afhkls","d":2,"theme":"home-row-caps","location":"stream"},
+  {"text":"dad asks Hal","letters":"adhkls","d":2,"theme":"home-row-caps","location":"stream"}
 ]

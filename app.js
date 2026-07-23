@@ -773,7 +773,7 @@ function showRankUp(tier) {
 
 // record a processed keystroke for the silent adaptive-meter stats
 function recordKey(expected, correct) {
-  const s = statLetter(expected);
+  const s = statLetter(expected.toLowerCase());   // capitals share their base-letter bucket (A2)
   if (correct) {
     s.n++;
     const now = Date.now();
@@ -790,12 +790,17 @@ document.addEventListener("keydown", (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key.length !== 1) return;
   if (e.key === " ") { e.preventDefault(); handleSpace(); return; }   // forgiving spacebar (A1)
-  const key = e.key.toLowerCase();
-  if (!/[a-z]/.test(key)) return;
+  if (!/[a-z]/i.test(e.key)) return;                                  // a single letter, either case
 
   const expected = target[typed];
   if (expected === " ") return;    // a letter where a space is due → forgiving no-op
-  if (key === expected) {
+  // Case matters only for a capital target (A2): a capital must be typed with
+  // Shift (exact match). A lowercase target accepts either case, so the Pond —
+  // lowercase-only forever — behaves exactly as before (a stray Shift is harmless).
+  const hit = expected === expected.toLowerCase()
+    ? e.key.toLowerCase() === expected
+    : e.key === expected;
+  if (hit) {
     recordKey(expected, true);
     typed++;
     if (phase === "reel") { ({ tension } = logic.applyTension(tension, true, CONFIG.reel)); renderTension(); }
@@ -858,6 +863,25 @@ KB.rows.forEach((row, r) => {
   });
 });
 
+// A2: two Shift keys flanking the bottom row. Capitals are typed with the
+// OPPOSITE hand's pinky on Shift, so the guide can animate that reach.
+const SHIFT_KEYS = [
+  { id: "lshift", x: 0,                            w: KB.rows[2].off },
+  { id: "rshift", x: KB.rows[2].off + 7 * KB.pitch, w: S(64) },
+];
+SHIFT_KEYS.forEach(({ id, x, w }) => {
+  const y = 2 * KB.pitch;
+  keyPos[id] = { x: x + w / 2, y: y + KEY_SZ / 2 };
+  const k = document.createElement("div");
+  k.className = "key shift-key";
+  k.textContent = "⇧";
+  k.style.left = x + "px"; k.style.top = y + "px";
+  k.style.width = w + "px"; k.style.height = KEY_SZ + "px";
+  k.style.fontSize = S(14) + "px";
+  k.dataset.ch = id;
+  guide.appendChild(k);
+});
+
 // fingers: capsules with tips resting on their home keys
 Object.entries(FINGER_HOMES).forEach(([f, home]) => {
   const fin = document.createElement("div");
@@ -871,26 +895,38 @@ Object.entries(FINGER_HOMES).forEach(([f, home]) => {
   fingerEls[f] = { el: fin, home };
 });
 
-// dim keys the player hasn't unlocked yet (the ";" anchor stays ghosted)
+// dim keys the player hasn't unlocked yet (the ";" anchor + Shift keys aren't
+// letters, so they're never "locked")
 function renderKeyLocks() {
   guide.querySelectorAll(".key").forEach(k => {
     const ch = k.dataset.ch;
-    if (ch === ";") return;
+    if (!/^[a-z]$/.test(ch)) return;
     k.classList.toggle("locked", !unlockedLetters.has(ch));
   });
+}
+
+// light a key and slide its finger there from its home rest position
+function reachFinger(finger, posId) {
+  const keyEl = guide.querySelector(`.key[data-ch="${posId}"]`);
+  if (keyEl) keyEl.classList.add("target");
+  const { el: fin, home } = fingerEls[finger];
+  fin.style.transform =
+    `translate(${keyPos[posId].x - keyPos[home].x}px, ${keyPos[posId].y - keyPos[home].y}px)`;
+  fin.classList.add("active");
 }
 
 function updateGuide(letter) {
   guide.querySelectorAll(".key.target").forEach(k => k.classList.remove("target"));
   Object.values(fingerEls).forEach(({ el }) => { el.style.transform = ""; el.classList.remove("active"); });
-  if (!guideOn || !letter || !LETTER_FINGER[letter]) return;
-  const keyEl = guide.querySelector(`.key[data-ch="${letter}"]`);
-  if (keyEl) keyEl.classList.add("target");
-  const { el: fin, home } = fingerEls[LETTER_FINGER[letter]];
-  const dx = keyPos[letter].x - keyPos[home].x;
-  const dy = keyPos[letter].y - keyPos[home].y;
-  fin.style.transform = `translate(${dx}px, ${dy}px)`;  // finger reaches from home to target
-  fin.classList.add("active");
+  if (!guideOn || !letter) return;
+  const base = letter.toLowerCase();          // the letter's key/finger is case-independent
+  if (!LETTER_FINGER[base]) return;
+  reachFinger(LETTER_FINGER[base], base);
+  // A2: a capital also needs Shift — the opposite hand's pinky reaches for it
+  if (letter !== base) {
+    const leftHand = LETTER_FINGER[base][0] === "l";
+    reachFinger(leftHand ? "rp" : "lp", leftHand ? "rshift" : "lshift");
+  }
 }
 
 const guideBtn = $("guide-toggle");
