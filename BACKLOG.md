@@ -72,6 +72,9 @@ carelessness (repeated errors). Rewards key off accuracy/collection, never speed
 scope it into its own build plan when v1 (M4b Firestore) is closed out. Work one
 piece at a time; nothing here expands current work.*
 
+**→ Detailed milestone breakdown: `BUILD_PLAN_ADVANCED.md`** (phased A0–A8,
+code-accurate touch points, architecture decisions, art dependencies).
+
 **Why:** three kids, ~3 years apart, will always sit at different capability
 levels and need different challenges *at the same time*. The per-kid profile
 system (M4) already keeps their state fully separate, so each kid can live in a
