@@ -12,6 +12,7 @@ import { CONFIG } from "../config.js";
 const load = p => JSON.parse(readFileSync(new URL(p, import.meta.url), "utf8"));
 const words = load("../data/words.json");
 const fish  = load("../data/fish.json");
+const blocklist = new Set(load("../data/blocklist.json"));
 const TIERS = new Set(Object.keys(CONFIG.size.weightRangeByTier)); // source of truth
 
 // report the actual offenders, not just a count — a failing test should point at the row
@@ -35,6 +36,11 @@ test("no duplicate words", () => {
   const list = words.map(w => w.w);
   const dupes = [...new Set(list.filter((w, i) => list.indexOf(w) !== i))];
   assert.deepEqual(dupes.slice(0, 5), [], "duplicate word(s)");
+});
+
+test("no blocklisted non-word slips into the pool (the 'sie' class of bug)", () => {
+  assert.ok(blocklist.size > 0, "blocklist.json should be non-empty");
+  assert.equal(offenders(words, w => blocklist.has(w.w), w => w.w), "", "blocklisted word in pool");
 });
 
 test("fish.json is a non-empty array of well-formed entries", () => {

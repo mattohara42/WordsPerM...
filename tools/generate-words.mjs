@@ -5,13 +5,20 @@
 
 import { readFileSync, writeFileSync } from "fs";
 
+// Curated stop-list of non-words a dictionary filter can't catch — acronyms,
+// abbreviations, foreign words, prefixes. Shared with tests/data.test.mjs so
+// words.json and any regeneration stay in sync. See BACKLOG → Word pool.
+const BLOCKLIST = JSON.parse(readFileSync(new URL("../data/blocklist.json", import.meta.url), "utf8"));
+
 // ---- Config ----
 const CFG = {
   minLen: 3,
   maxLen: 8,
   maxWords: 3000,          // keep the most frequent N after filtering
   rareLetters: "qxzj",     // presence bumps difficulty by 1
-  blocklist: new Set(["aaa","aka","las","das","ada","ala","dallas","alaska","gal","hag"]),
+  // data/blocklist.json (the curated stop-list) plus a few proper-noun/junk
+  // tokens this generator has always dropped.
+  blocklist: new Set([...BLOCKLIST, "aaa","aka","ada","ala","dallas","alaska","gal","hag"]),
   // real words the web-frequency list misses; home row needs the help
   supplements: ["salad","flask","lash","slash","sag","lag","fads","lads","gall","gala","flags","halls","glads","salads"],
 };
