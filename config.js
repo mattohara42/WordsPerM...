@@ -119,6 +119,8 @@ export const CONFIG = {
   // by the Firestore security rules (see firestore.rules). Reuses the Family
   // Hub project. Sync is optional: with no sign-in the game runs on
   // localStorage alone.
+  // Self-hosting? Replace this block with your own project's config —
+  // see FIRESTORE.md → "Cloud saves setup (self-hosting)".
   firebase: {
     sdkVersion: "10.14.1",        // gstatic CDN version; bump here if an import 404s
     collection: "typingFishing",  // one doc per kid lives directly in this top-level collection

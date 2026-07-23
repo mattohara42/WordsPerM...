@@ -88,7 +88,90 @@ cheap and the offline/localStorage fallback trivial (the doc IS the save file).
 - Multi-device merge logic
 - Firebase Auth per kid
 
+## Cloud saves setup (self-hosting)
+
+**Cloud saves are optional.** With no Firebase config the game runs entirely on
+localStorage — every profile, catch, and stat is saved on that one
+device/browser, no account needed. Set up Firebase only if you want a kid's
+progress to sync across devices (e.g. the tablet and the desktop) behind one
+parent Google sign-in. Without a valid config the game just plays offline; it
+never errors.
+
+This is a one-time setup, in two flavors: a brand-new Firebase project, or
+adding Typing Fishing to a Firebase project you already use for something else.
+
+### What the game needs from Firebase
+
+- **Firestore** (Native mode) — one document per kid in a single collection
+  (documents live directly in the collection named by `config.js` →
+  `firebase.collection`, default `typingFishing`).
+- **Google sign-in** (Firebase Authentication) — one parent login; each doc is
+  stamped with the caller's `ownerUid`, which the rules use to keep families
+  separate.
+- A **Web app** registration, which yields the `firebaseConfig` values that go
+  into `config.js`.
+
+### Path A — a new Firebase project
+
+1. **Create a project** at <https://console.firebase.google.com> → *Add
+   project*.
+2. **Firestore Database** → *Create database* → **Native mode**, pick a region.
+3. **Authentication** → *Get started* → enable the **Google** provider.
+4. **Project settings** (⚙) → *Your apps* → add a **Web app** (`</>`); copy the
+   `firebaseConfig` object it shows.
+5. **Paste those values into `config.js`** under `firebase.config` (`apiKey`,
+   `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`).
+   Leave `firebase.collection` as `"typingFishing"` unless you want a different
+   name.
+6. **Security rules** — Firestore → *Rules*. Because the database is new, paste
+   the **complete reference ruleset** from the bottom of `firestore.rules`
+   (the `rules_version = '2'; …` block) and *Publish*.
+7. **Authorized domains** — Authentication → *Settings* → *Authorized domains* →
+   add the domain you'll deploy to (e.g. `yourgame.netlify.app`). `localhost` is
+   already allowed for local dev.
+8. **Deploy** (see below), then run the verification checklist.
+
+### Path B — an existing Firebase project
+
+Use this if you already run other apps/collections in a Firebase project (this
+is how the reference install shares one project with "Family Hub").
+
+1. **Reuse or add a Web app** in that project's settings; copy its
+   `firebaseConfig` into `config.js` → `firebase.config`.
+2. If `typingFishing` might collide with an existing collection, change
+   `firebase.collection` in `config.js` to something unique.
+3. **Enable the Google** sign-in provider if it isn't already (Authentication →
+   Sign-in method).
+4. **Security rules — do NOT overwrite your existing rules.** In Firestore →
+   *Rules*, paste **only** the `match /typingFishing/{profileId} { … }` block
+   from `firestore.rules` *inside* your existing
+   `match /databases/{database}/documents { … }` block, alongside your other
+   rules, and *Publish*. (If you renamed the collection in step 2, rename the
+   match path to match.)
+5. **Authorized domains** — add your deploy domain (Authentication → Settings).
+6. **Deploy** and verify.
+
+### About the `config.js` firebase values
+
+The Firebase web config is a set of **public identifiers, not secrets** —
+access is controlled entirely by the Firestore security rules, so it's fine that
+they live in a committed file. `firebase.sdkVersion` pins the gstatic CDN SDK
+version; bump it if an import 404s.
+
+### Deploy
+
+No build step — deploy the repo's static files to any static host (Netlify,
+GitHub Pages, Cloudflare Pages, Firebase Hosting, …). **Cloud-save sign-in needs
+HTTPS**, so verify the signed-in path on your real `https://` URL, not a
+plain-http or mismatched-subdomain preview.
+
 ## M4b live-verification checklist
+
+> This is the **reference install's** live-verify record. For your own project,
+> complete *Cloud saves setup* above first, then substitute your project and
+> deploy domain wherever the checklist names the reference install
+> (`familyhub-5fc43`, `fishtyping.netlify.app`). The walkthrough and
+> failure-signature table apply to any project unchanged.
 
 The sync code (`app.js`) is complete; M4b is "done" once the signed-in
 cross-device path is verified live. Sign-in popups need HTTPS, so test on the
