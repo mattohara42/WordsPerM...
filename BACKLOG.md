@@ -65,3 +65,72 @@ carelessness (repeated errors). Rewards key off accuracy/collection, never speed
 - **Family trophy wall** — each kid's biggest catch shown together (Firestore is already multi-profile). Sibling delight without a leaderboard.
 - **Named nemesis fish** — Muskie Quixote already exists in `data/fish.json` as the legendary; give it recurring lore + a bigger landing celebration.
 - **Home aquarium** — caught fish swim in a viewable tank. The ultimate "look what I made" for a kid. Needs art.
+
+## EPIC: Advanced Progression — tiers, phrases, sentences, WPM-as-goal (v2/v3)
+
+*Approved by Matt, July 2026. A multi-milestone epic, NOT a single milestone —
+scope it into its own build plan when v1 (M4b Firestore) is closed out. Work one
+piece at a time; nothing here expands current work.*
+
+**Why:** three kids, ~3 years apart, will always sit at different capability
+levels and need different challenges *at the same time*. The per-kid profile
+system (M4) already keeps their state fully separate, so each kid can live in a
+different tier simultaneously.
+
+**The one rule that keeps this in keeping with the original intent:** advanced
+progression is a **graduation into an opt-in tier, never a retrofit of the cozy
+core.** The starting pond stays exactly as-is — error-only tension, no timers,
+slow-is-safe. Depth is a door a kid *chooses* to walk through once ready, not a
+difficulty ramp applied to a beginner.
+
+### Tiers = a kid's rank; locations = the mode they unlock
+
+| Rank | Location | Fishing style | Content | Typing focus |
+|------|----------|---------------|---------|--------------|
+| **Minnow** | **Pond** | still-water (current game) | single words | letters, home-row-out — *this is v1, untouched* |
+| **Mackerel** | **Stream** | fly fishing | multi-word phrases | capitals + punctuation begin (Shift as the parked "late letter unlock") |
+| **Marlin** | **Ocean** | sport fishing | full sentences | fluency, rhythm, personal-best pacing |
+
+Rank is per-profile and permanent (you don't get demoted); a kid can always drop
+back to a lower pond for a cozy session. Advancement gate mirrors the existing
+letter-unlock model (fish-count / mastery milestone), not a speed test.
+
+### WPM: a goal, not a punishment (Matt's explicit call, July 2026)
+
+- The "no visible WPM / no speed pressure" Non-Goal **still holds for the Minnow
+  pond** — the beginner experience never changes.
+- WPM surfaces **only in the higher tiers**, and only ever as a **self-paced
+  personal-best** a kid is chasing against their *own* past, never a fail bar you
+  can drop below and lose the fish. Slow is still always safe; speed is a
+  *bonus* to beat, not a floor to clear.
+- Data groundwork already exists: SPEC's v2 note has us logging per-word
+  timing/accuracy silently since v1 *specifically* so this tier has data on day
+  one. This is mostly a "decide how to surface data we already have" problem, not
+  a new timing system.
+
+### Per-tier mechanic sketches (brainstorm — not locked)
+
+- **Stream / fly fishing (Mackerel):** casting gets a gentle *rhythm* — type the
+  phrase in an even cadence to "lay the fly" well. Rewards flow/consistency, not
+  raw speed. Phrases introduce the spacebar and word-to-word transitions.
+- **Ocean / sport fishing (Marlin):** landing a big fish is a *fight* — a longer
+  sentence reeled in bursts, the fish "runs" (pauses) between clauses. Sentences
+  bring capitals, commas, periods. This is where personal-best WPM lives, as the
+  "how cleanly did you land the marlin" flourish.
+
+### Graphics
+
+Each biome is a new background scene — reuses the M9 `#scene-frame` scaling
+system. This is the existing "more ponds/locations" v2 World item, now given
+concrete identities (Pond / Stream / Ocean). Real art scope → `ART.md` (Gemini
+prompts + Matt generates). Palette stays the locked ~16-color set.
+
+### Open threads to resolve when this is scoped for real
+- Exact advancement gates per tier (catch count? species mastery? never speed).
+- Punctuation/capital unlock order — is it its own progression inside Stream, or
+  a prerequisite to entering it?
+- How personal-best WPM is shown so it reads as an invitation, not a scoreboard
+  (and whether it's ever sibling-visible — leans NO, per the no-leaderboard cozy
+  stance).
+- Sentence content source & schema — the word pool has no phrase/sentence entry
+  type today; that's a real data-shape addition.
