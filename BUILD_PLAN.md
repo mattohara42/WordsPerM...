@@ -35,20 +35,25 @@ Port the prototype's cast → wait → reel → catch loop into the real app str
 Define ~8–10 fish across 3 rarity tiers. Rarity maps to word difficulty. Catches award coins. Pixel-art placeholder sprites — source from Kenney.nl (CC0) or itch.io cozy fishing packs; prefer packs sharing one palette. Kid-drawn fish are a legitimate asset pipeline.
 **Done when:** rare fish demand harder words and the coin balance persists across a session.
 
-### 🟡 M4 — Profiles (Firestore) — M4a done 2026-07-16, M4b (Firestore sync) pending
+### ✅ M4 — Profiles (Firestore) — M4a done 2026-07-16, M4b done 2026-07-23
 Profile picker on launch. Per-kid: unlocked letters, coins, collection, upgrades, accuracy/timing stats (logged silently — feeds v2 adaptive meter). Reuse Family Hub Firestore patterns.
 **Done when:** two profiles maintain fully separate state across reloads.
 - **M4a (done):** profile picker + emoji avatars, per-kid localStorage save shaped
   per FIRESTORE.md, legacy-save migration, silent per-letter/word/session stats,
   switch-kid. Meets the done-when on localStorage alone.
-- **M4b (code complete, awaiting live verification):** Firestore
-  read-on-launch / write-on-catch + localStorage mirror, one parent Google
-  sign-in (Firebase signInWithPopup) for cross-device sync, ownerUid-scoped
-  docs, firestore.rules to add. Offline fallback verified in-sandbox (Firebase
-  unreachable → game plays on localStorage, no errors). The signed-in path
-  needs live HTTPS (Netlify) + Firebase console setup to verify — see the
-  session handoff. Parent must: add fishtyping.netlify.app to Firebase Auth
-  authorized domains, and merge firestore.rules into the shared ruleset.
+- **M4b (done 2026-07-23):** Firestore read-on-launch / write-on-catch +
+  localStorage mirror, one parent Google sign-in (Firebase signInWithPopup) for
+  cross-device sync, ownerUid-scoped docs, firestore.rules. Offline fallback
+  verified in-sandbox (Firebase unreachable → game plays on localStorage, no
+  errors). **Live-verified 2026-07-23:** the Firebase console setup is done
+  (fishtyping.netlify.app added to Auth authorized domains, firestore.rules
+  merged into the shared ruleset) and the signed-in cross-device path is
+  confirmed — **cloud saves work.** See the M4b verification checklist in
+  `FIRESTORE.md`.
+
+  **→ v1 is now complete. This also clears the stated prerequisite for the
+  Advanced Progression epic (`BUILD_PLAN_ADVANCED.md`), whose first buildable
+  milestone is A0 (rank/location foundation).**
 
 ### ✅ M5 — Letter unlock progression (done 2026-07-15)
 Fish-count milestones unlock new letters in a configured order. Celebration moment on unlock ("new letter!"). Word pool filter updates live.
