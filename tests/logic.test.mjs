@@ -7,7 +7,7 @@ import { CONFIG } from "../config.js";
 import {
   unlockedStageCount, lettersForStages, pickTier, weightClass, rollWeight, buildReelPool,
   applyTension, catchReward, isPersonalBest, countsTowardTiming, overallAccuracy,
-  locationsForRods, rankForState,
+  locationsForRods, rankForState, tokenize, wordCount,
 } from "../logic.js";
 
 const stages = [
@@ -172,6 +172,44 @@ test("rankForState: furthest unlocked location, never below the home rank", () =
   assert.equal(rankForState(tiers, ["pond", "stream"]), "mackerel");
   assert.equal(rankForState(tiers, ["pond", "stream", "ocean"]), "marlin");
   assert.equal(rankForState(tiers, []), "minnow");   // defends to the home rank
+});
+
+test("tokenize splits a phrase into ordered word/space tokens", () => {
+  assert.deepEqual(tokenize("ask a lad"), [
+    { type: "word", text: "ask" },
+    { type: "space", text: " " },
+    { type: "word", text: "a" },
+    { type: "space", text: " " },
+    { type: "word", text: "lad" },
+  ]);
+  assert.deepEqual(tokenize("hi"), [{ type: "word", text: "hi" }]);
+  assert.deepEqual(tokenize(""), []);
+});
+
+test("tokenize keeps punctuation as its own token (forward reach for A5 sentences)", () => {
+  assert.deepEqual(tokenize("go, cat!"), [
+    { type: "word", text: "go" },
+    { type: "punct", text: "," },
+    { type: "space", text: " " },
+    { type: "word", text: "cat" },
+    { type: "punct", text: "!" },
+  ]);
+  // capitals still tokenize as words (A2 adds Shift; tokenizer is ready)
+  assert.deepEqual(tokenize("Go Fish").map(t => t.type), ["word", "space", "word"]);
+});
+
+test("wordCount is the number of reel segments a phrase takes to land", () => {
+  assert.equal(wordCount("ask a lad"), 3);
+  assert.equal(wordCount("dad"), 1);
+  assert.equal(wordCount("half a salad"), 3);
+  assert.equal(wordCount(""), 0);
+});
+
+test("buildReelPool works on phrase entries too (content-agnostic on .d)", () => {
+  const phrases = [{ text: "a sad lad", d: 1 }, { text: "a red hat", d: 2 }];
+  assert.deepEqual(buildReelPool(phrases, 1, 1).map(e => e.text), ["a sad lad"]);
+  // difficulty 2 includes both (d>=1 after widening isn't needed; d in [2,2] is thin → widens)
+  assert.equal(buildReelPool(phrases, 2, 2).length, 2);
 });
 
 test("overallAccuracy sums correct vs. error keystrokes across the letter map", () => {

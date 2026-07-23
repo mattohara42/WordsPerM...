@@ -100,14 +100,39 @@ export function rankForState(tiers, locations) {
   return rank;
 }
 
-// Words matched to a fish's difficulty, mixing in easier ones only when the
-// unlocked pool is too thin to fill minSize (e.g. stage 1's lone hard word).
-export function buildReelPool(words, difficulty, minSize) {
+// Words (or phrases) matched to a fish's difficulty, mixing in easier ones only
+// when the pool is too thin to fill minSize (e.g. stage 1's lone hard word).
+// Content-agnostic: works on any entry with a numeric `d`, so the phrase reel
+// (AD2) draws from data/phrases.json through the same difficulty machinery.
+export function buildReelPool(entries, difficulty, minSize) {
   let floor = difficulty, pool;
   do {
     const f = floor;
-    pool = words.filter(e => e.d >= f && e.d <= difficulty);
+    pool = entries.filter(e => e.d >= f && e.d <= difficulty);
     floor--;
   } while (pool.length < minSize && floor >= 1);
   return pool;
+}
+
+// Split a reel string into ordered tokens for the token-at-a-time reel (AD2):
+//   { type:"word",  text } — a run of letters; the unit you type
+//   { type:"space", text } — the gap between words; a real (forgiving) key and
+//                            the reel-crank beat (replaces word-mode's auto pause)
+//   { type:"punct", text } — punctuation runs (A5 sentences), kept as their own
+//                            token so the reel can pause on clause boundaries
+// A1 phrases are letters + single spaces only; punct is here for forward reach.
+export function tokenize(text) {
+  const tokens = [];
+  for (const m of text.matchAll(/[a-z]+|\s+|[^a-z\s]+/gi)) {
+    const seg = m[0];
+    const type = /[a-z]/i.test(seg[0]) ? "word" : /\s/.test(seg[0]) ? "space" : "punct";
+    tokens.push({ type, text: seg });
+  }
+  return tokens;
+}
+
+// How many typeable words a reel string holds — the number of reel segments a
+// phrase takes to land (its spaces are the beats between them).
+export function wordCount(text) {
+  return tokenize(text).filter(t => t.type === "word").length;
 }
