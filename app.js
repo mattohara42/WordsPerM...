@@ -7,6 +7,8 @@ import * as logic from "./logic.js";   // pure game math (unit-tested in tests/l
 let FULL_POOL = [];              // every entry from data/words.json
 let WORDS = [];                  // entries typeable with the unlocked letters
 let FISH = [];                   // full roster from data/fish.json
+let PHRASE_POOL = [];            // every entry from data/phrases.json (A1; may be empty)
+let PHRASES = [];                // phrases typeable with the unlocked letters
 let unlockedLetters = new Set();
 
 async function loadJson(path) {
@@ -192,6 +194,9 @@ function recomputeUnlocks() {
   const n = unlockedStageCount(totalCatches());
   unlockedLetters = logic.lettersForStages(CONFIG.unlock.stages, n);
   WORDS = FULL_POOL.filter(e => [...e.letters].every(l => unlockedLetters.has(l)));
+  // phrases gate on the same unlocked-letter set as words, so a Stream kid only
+  // reels phrases they can actually type (the seed is home-row, so all typeable)
+  PHRASES = PHRASE_POOL.filter(e => [...e.letters].every(l => unlockedLetters.has(l)));
   renderKeyLocks();
 }
 
@@ -266,6 +271,7 @@ let tension = 0;
 let fish = null;           // roster entry currently on the line
 let junk = null;           // junk item on the line instead of a fish (comedy), or null
 let reelPool = [];         // words matched to the hooked fish's difficulty
+let reelMode = "words";    // "words" (Pond) | "phrase" (Stream, A1) — set at each bite
 let wordsToLand = 0;
 let wordsLeft = 0;
 let inputLocked = false;
@@ -307,6 +313,12 @@ const rand = (a, b) => a + Math.random() * (b - a);
 function rollWeight(tier)           { return logic.rollWeight(CONFIG.size, tier); }
 function pickTier()                 { return logic.pickTier(CONFIG.bite.tierOddsByRod[equippedRod().rodLevel]); }
 function buildReelPool(difficulty)  { return logic.buildReelPool(WORDS, difficulty, CONFIG.reel.minReelPoolSize); }
+// phrases for the current spot, matched to the fish's difficulty (same widening
+// machinery as words). Empty unless typeable phrases are tagged for save.location.
+function buildPhrasePool(difficulty) {
+  const here = PHRASES.filter(p => p.location === save.location);
+  return logic.buildReelPool(here, difficulty, CONFIG.reel.minPhrasePoolSize);
+}
 
 // ---- Audio: procedural synth, no external asset files (M10) ----
 // Web Audio oscillators/filters generate everything — a water-drone ambient
@@ -471,8 +483,18 @@ function bobberOut(plunge) {
 
 // ---- Rendering ----
 function renderWord() {
-  el.word.innerHTML =
-    `<span class="done">${target.slice(0, typed)}</span><span class="todo">${target.slice(typed)}</span>`;
+  // Phrase mode marks the space you're about to type with a visible ␣ so the
+  // spacebar cue is obvious. Word mode (the Pond) never has a space as the next
+  // char, so it keeps the original two-span markup untouched.
+  if (target[typed] === " ") {
+    el.word.innerHTML =
+      `<span class="done">${target.slice(0, typed)}</span>` +
+      `<span class="cur space">␣</span>` +
+      `<span class="todo">${target.slice(typed + 1)}</span>`;
+  } else {
+    el.word.innerHTML =
+      `<span class="done">${target.slice(0, typed)}</span><span class="todo">${target.slice(typed)}</span>`;
+  }
   updateGuide(target[typed]);
 }
 function renderTension() {
@@ -573,8 +595,20 @@ function bite() {
   junk = Math.random() < CONFIG.junk.chance ? pick(CONFIG.junk.items) : null;
   const tier = junk ? "common" : pickTier();          // junk reels like an easy common
   fish = junk ? null : pick(FISH.filter(f => f.tier === tier));
-  reelPool = buildReelPool(junk ? 1 : fish.difficulty);
-  wordsToLand = CONFIG.reel.wordsToLandByTier[tier];
+
+  // Content unit for this catch (AD2): reel a phrase when typeable phrase content
+  // is tagged for this spot (the Stream, A1); otherwise word-at-a-time — the Pond,
+  // and junk everywhere (a boot doesn't earn a phrase). Empty phrase pool falls
+  // back to words, so a missing/short data set never blocks a catch.
+  const phrasePool = junk ? [] : buildPhrasePool(fish.difficulty);
+  reelMode = phrasePool.length ? "phrase" : "words";
+  if (reelMode === "phrase") {
+    target = pick(phrasePool).text; typed = 0; lastKeyTime = 0;
+    wordsToLand = logic.wordCount(target);
+  } else {
+    reelPool = buildReelPool(junk ? 1 : fish.difficulty);
+    wordsToLand = CONFIG.reel.wordsToLandByTier[tier];
+  }
   wordsLeft = wordsToLand;
   el.fish.classList.add("hooked");
   if (junk) {
@@ -593,12 +627,14 @@ function bite() {
   setStatus(pick(PUNS.bite));
   startSwim();
   setTimeout(() => el.fish.classList.remove("hooked"), 350);
-  nextReelWord();
+  if (reelMode === "phrase") renderWord(); else nextReelWord();
 }
 
 function nextReelWord() { target = pick(reelPool).w; typed = 0; lastKeyTime = 0; renderWord(); }
 
-function wordComplete() {
+// One word reeled in: pull the fish a notch toward the boat, with the tick/pop
+// feedback. Shared by word-mode (wordComplete) and phrase-mode (space/land).
+function pullFishOneWord() {
   wordsLeft--;
   el.dist.textContent = wordsLeft > 0 ? wordsLeft + " words" : "landing…";
   setFishTarget();
@@ -607,6 +643,10 @@ function wordComplete() {
   ripple(parseInt(el.fish.style.left) + 28, 262);
   sfxWordTick();
   el.word.classList.remove("pop"); void el.word.offsetWidth; el.word.classList.add("pop");
+}
+
+function wordComplete() {
+  pullFishOneWord();
   if (wordsLeft <= 0) return land(true);
   inputLocked = true;
   el.word.innerHTML = `<span class="done">${target}</span>`;
