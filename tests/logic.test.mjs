@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { CONFIG } from "../config.js";
 import {
   unlockedStageCount, lettersForStages, pickTier, weightClass, rollWeight, buildReelPool,
+  applyTension, catchReward, isPersonalBest, countsTowardTiming, overallAccuracy,
 } from "../logic.js";
 
 const stages = [
@@ -90,4 +91,67 @@ test("buildReelPool mixes in easier words only when the pool is too thin", () =>
   // if minSize is satisfiable at the exact difficulty, it stays strict
   const strict = buildReelPool([{ w: "hard", d: 3 }], 3, 1);
   assert.deepEqual(strict.map(e => e.w), ["hard"]);
+});
+
+// The SPEC's central invariant: tension reacts to errors only, never speed.
+const reel = CONFIG.reel;
+
+test("applyTension: correct keys only ever relieve, never escape (any speed is safe)", () => {
+  // from a high tension, a correct key drops it by exactly correctRelief
+  const hot = applyTension(50, true, reel);
+  assert.equal(hot.tension, 50 - reel.correctRelief);
+  assert.equal(hot.escaped, false);
+  // even sitting at the escape ceiling, a correct key pulls back and never escapes
+  const atCeiling = applyTension(reel.escapeAt, true, reel);
+  assert.equal(atCeiling.tension, reel.escapeAt - reel.correctRelief);
+  assert.equal(atCeiling.escaped, false);
+});
+
+test("applyTension: correct keys clamp at zero (careful typing can't go negative)", () => {
+  const r = applyTension(1, true, reel);
+  assert.equal(r.tension, 0);              // 1 - correctRelief would be negative → clamped
+  assert.equal(r.escaped, false);
+});
+
+test("applyTension: wrong keys add tension and clamp at the escape ceiling", () => {
+  const r = applyTension(0, false, reel);
+  assert.equal(r.tension, reel.errorTension);
+  assert.equal(r.escaped, false);
+  // a wrong key can't push tension past escapeAt
+  const over = applyTension(reel.escapeAt, false, reel);
+  assert.equal(over.tension, reel.escapeAt);
+  assert.equal(over.escaped, true);
+});
+
+test("applyTension: escape triggers exactly at the ceiling, not before", () => {
+  const justBelow = reel.escapeAt - reel.errorTension;
+  assert.equal(applyTension(justBelow - 1, false, reel).escaped, false); // stays under
+  assert.equal(applyTension(justBelow, false, reel).escaped, true);      // reaches ceiling
+});
+
+test("catchReward adds the first-catch bonus only on a first catch", () => {
+  assert.equal(catchReward(5, true, 2), 7);
+  assert.equal(catchReward(5, false, 2), 5);
+});
+
+test("isPersonalBest treats a missing record as beatable by any weight", () => {
+  assert.equal(isPersonalBest(undefined, 0.1), true);  // no record yet → any catch is a best
+  assert.equal(isPersonalBest(3, 4), true);
+  assert.equal(isPersonalBest(4, 4), false);           // ties are not a new best
+  assert.equal(isPersonalBest(5, 4), false);
+});
+
+test("countsTowardTiming ignores the first key of a word and long idle gaps", () => {
+  assert.equal(countsTowardTiming(0, 1000, 5000), false);      // no prior key this word
+  assert.equal(countsTowardTiming(1000, 1300, 5000), true);    // 300ms gap → counts
+  assert.equal(countsTowardTiming(1000, 7000, 5000), false);   // 6s gap → kid stepped away
+});
+
+test("overallAccuracy sums correct vs. error keystrokes across the letter map", () => {
+  const empty = overallAccuracy({});
+  assert.equal(empty.keys, 0);
+  assert.equal(empty.pct, 0);
+  const acc = overallAccuracy({ a: { n: 9, errors: 1 }, s: { n: 10, errors: 0 } });
+  assert.equal(acc.keys, 20);
+  assert.equal(acc.pct, 19 / 20);
 });

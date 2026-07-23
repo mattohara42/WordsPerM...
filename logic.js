@@ -40,6 +40,47 @@ export function rollWeight(sizeCfg, tier, rnd = Math.random) {
   return { weight: Math.round(w * 10) / 10, cls: weightClass(sizeCfg, tier, w) };
 }
 
+// Tension after one processed keystroke while reeling. The SPEC's core rule:
+// tension reacts to errors only, never speed. A correct key relieves tension
+// (at any typing speed — slow-but-careful is always safe); a wrong key adds.
+// Result is clamped to [0, escapeAt]; `escaped` is the game's one fail state,
+// true only when a wrong key pushes tension to the escape ceiling.
+export function applyTension(current, correct, reelCfg) {
+  if (correct) {
+    return { tension: Math.max(0, current - reelCfg.correctRelief), escaped: false };
+  }
+  const tension = Math.min(reelCfg.escapeAt, current + reelCfg.errorTension);
+  return { tension, escaped: tension >= reelCfg.escapeAt };
+}
+
+// Coins awarded for a catch: the fish's base value plus a one-time bonus the
+// first time a species is landed.
+export function catchReward(fishCoins, firstCatch, firstCatchBonus) {
+  return fishCoins + (firstCatch ? firstCatchBonus : 0);
+}
+
+// A caught weight is a new personal best when it beats the stored record — or
+// when there is no record yet (previousBest undefined → treated as 0).
+export function isPersonalBest(previousBest, weight) {
+  return weight > (previousBest ?? 0);
+}
+
+// Whether a correct keystroke's latency counts toward timing stats: it needs a
+// prior keystroke this word (lastKeyTime set) and a gap under the "kid stepped
+// away" ceiling, so idle pauses don't pollute the silent timing data.
+export function countsTowardTiming(lastKeyTime, now, maxLatencyMs) {
+  return lastKeyTime > 0 && (now - lastKeyTime) < maxLatencyMs;
+}
+
+// Overall accuracy across a per-letter stats map ({ letter: { n, errors } }):
+// the fraction of keystrokes that were correct, plus the total keys seen.
+// Empty map → 0% over 0 keys (badge thresholds gate on a key minimum).
+export function overallAccuracy(letters) {
+  let n = 0, e = 0;
+  for (const k in letters) { n += letters[k].n; e += letters[k].errors; }
+  return { pct: n + e ? n / (n + e) : 0, keys: n + e };
+}
+
 // Words matched to a fish's difficulty, mixing in easier ones only when the
 // unlocked pool is too thin to fill minSize (e.g. stage 1's lone hard word).
 export function buildReelPool(words, difficulty, minSize) {
