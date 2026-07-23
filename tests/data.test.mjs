@@ -12,6 +12,7 @@ import { CONFIG } from "../config.js";
 const load = p => JSON.parse(readFileSync(new URL(p, import.meta.url), "utf8"));
 const words = load("../data/words.json");
 const fish  = load("../data/fish.json");
+const phrases = load("../data/phrases.json");   // A1: Stream phrase content
 const blocklist = new Set(load("../data/blocklist.json"));
 const TIERS = new Set(Object.keys(CONFIG.size.weightRangeByTier)); // source of truth
 
@@ -41,6 +42,33 @@ test("no duplicate words", () => {
 test("no blocklisted non-word slips into the pool (the 'sie' class of bug)", () => {
   assert.ok(blocklist.size > 0, "blocklist.json should be non-empty");
   assert.equal(offenders(words, w => blocklist.has(w.w), w => w.w), "", "blocklisted word in pool");
+});
+
+test("phrases.json is a non-empty array of well-formed entries (A1)", () => {
+  assert.ok(Array.isArray(phrases) && phrases.length > 0);
+  // lowercase words joined by single spaces, 2+ words (it's a phrase) — this also
+  // rules out leading/trailing/double spaces and any non-lowercase-alpha character
+  assert.equal(offenders(phrases, p => !/^[a-z]+( [a-z]+)+$/.test(p.text), p => p.text), "",
+    "phrase.text must be lowercase words joined by single spaces, 2+ words");
+  assert.equal(offenders(phrases, p => !Number.isInteger(p.d) || p.d < 1 || p.d > 4, p => p.text), "", "difficulty d not in 1..4");
+  assert.equal(offenders(phrases, p => !p.theme, p => p.text), "", "missing theme");
+  assert.equal(offenders(phrases, p => !p.location, p => p.text), "", "missing location");
+});
+
+test("phrase.letters is the sorted unique letters of the text, spaces excluded", () => {
+  const wrong = p => p.letters !== [...new Set(p.text.replace(/ /g, ""))].sort().join("");
+  assert.equal(offenders(phrases, wrong, p => `${p.text}→${p.letters}`), "", "letters ≠ dedup-sorted(text)");
+});
+
+test("no duplicate phrases", () => {
+  const list = phrases.map(p => p.text);
+  const dupes = [...new Set(list.filter((t, i) => list.indexOf(t) !== i))];
+  assert.deepEqual(dupes.slice(0, 5), [], "duplicate phrase(s)");
+});
+
+test("no blocklisted non-word slips into a phrase (same guard as the word pool)", () => {
+  const bad = p => p.text.split(" ").some(w => blocklist.has(w));
+  assert.equal(offenders(phrases, bad, p => p.text), "", "blocklisted word in phrase");
 });
 
 test("fish.json is a non-empty array of well-formed entries", () => {

@@ -13,6 +13,7 @@ export const CONFIG = {
     // reel words match the fish's difficulty; if the unlocked pool has fewer
     // candidates than this, easier difficulties are mixed in until it doesn't
     minReelPoolSize: 8,
+    minPhrasePoolSize: 4,   // same, for the Stream's phrase pool (a curated, thinner set — A1)
     recastDelayMs: 1500,    // pause on the catch/escape message before recasting
   },
 

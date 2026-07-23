@@ -4,7 +4,7 @@ Companion to `SPEC.md`, `BUILD_PLAN.md` (v1), and the **Advanced Progression**
 epic in `BACKLOG.md`. This breaks the epic into sized, ordered, verifiable
 milestones — same rules as v1: **one milestone at a time, each ends playable.**
 
-**Status:** A0 done (2026-07-23); A1 is next. **Prerequisite:** close v1 (M4b
+**Status:** A1 done (2026-07-23); A2 is next. **Prerequisite:** close v1 (M4b
 Firestore live-verified) first — this epic adds new save fields, so it wants a
 stable sync base and a clean migration story. (Met — v1 complete.)
 
@@ -50,15 +50,21 @@ temporarily serve existing words so the plumbing is verifiable in isolation).
 
 ## Phase 1 — Stream / Mackerel (fly fishing) · *vertical slice, ships whole*
 
-### A1 — Phrase content + reel generalization
-- `data/phrases.json`: hand-curated multi-word phrases, starting home-row-easy.
-- `logic.js`: tokenizer (`text` → tokens incl. spaces); generalize
-  `buildReelPool` → content pool selectable by location/type. Tests.
-- `app.js`: reel loop consumes a token stream; **spacebar becomes a real
-  (forgiving) key**; tension logic untouched (error-only).
+### ✅ A1 — Phrase content + reel generalization (done 2026-07-23)
+- `data/phrases.json`: hand-curated multi-word phrases, starting home-row-easy
+  (15-phrase home-row seed; richer/harder phrase content is future work).
+- `logic.js`: `tokenize()`/`wordCount()` (`text` → word/space/punct tokens);
+  `buildReelPool` generalized to any `{d}` content so phrases reuse the same
+  difficulty-widening machinery. Tests in `tests/logic.test.mjs`.
+- `app.js`: the reel serves a phrase when typeable phrase content is tagged for
+  the current `save.location` (data-driven, no per-tier config flag); the
+  **spacebar is a real but forgiving key** — it advances between words and sits
+  entirely outside the tension system, so a mistimed/stray space is a no-op and
+  only wrong *letters* can escape (error-only intact). The Pond is byte-for-byte
+  unchanged (`reelMode` stays `"words"`). A visible `␣` cue marks the space.
 - **Done when:** the Stream reels real multi-word phrases including the
   spacebar; a slow careful typist still always lands; tension reacts to errors
-  only.
+  only. *(Verified: 38 unit tests + a faithful phrase-reel guardrail simulation.)*
 
 ### A2 — Capitals via Shift (+ finger guide)
 - `config.js`: capitals unlock (Shift) as a Stream-entry requirement.
