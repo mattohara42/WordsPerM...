@@ -22,7 +22,7 @@ base and a clean migration story.
 5. **Firestore stays one-read-per-launch / one-write-per-catch.** New fields
    ride the existing per-kid doc — no subcollections, no per-keystroke writes.
 
-## Architecture decisions (recommended — confirm before A0)
+## Architecture decisions (locked — Matt, July 2026)
 
 | # | Decision | Recommendation | Why |
 |---|----------|----------------|-----|
@@ -133,16 +133,17 @@ Muskie Quixote hero sprite · fly-rod + deep-sea-rod shop icons. All within the
 locked ~16-color palette. This is the slowest, most serial dependency
 (Gemini-generated, Matt-in-the-loop) — start it the moment Phase 1 is greenlit.
 
-## Decisions to confirm before building
+## Decisions (locked — Matt, July 2026)
 
-1. **Content schema** — separate `phrases.json`/`sentences.json` (recommended,
-   AD1) vs. one pool with a `type` field?
-2. **Spacebar & punctuation** — real typed keys (recommended — it *is* the
-   skill) vs. auto-inserted beats?
-3. **Sequence** — vertical slices per tier (recommended — each ships a real
-   playable tier) vs. horizontal (all content, then all art)?
-4. **Sentence sourcing** — hand/family-curated (recommended — small set,
-   quality + kid-appropriateness matter) vs. generated?
-5. **WPM visibility** — per-species personal best on the catch card, and
-   confirm it's **never** sibling-visible (leans NO, per the no-leaderboard
-   cozy stance).
+All five confirmed as the recommended defaults:
+
+1. **Content schema** — ✅ separate `data/phrases.json` + `data/sentences.json`,
+   sharing the word tag-schema (AD1). Not one pool with a `type` field.
+2. **Spacebar & punctuation** — ✅ real typed keys (they *are* the skill),
+   forgiving. Not auto-inserted beats.
+3. **Sequence** — ✅ vertical slices per tier: ship all of Stream (Phase 1)
+   before starting Ocean (Phase 2). Not horizontal (all content, then all art).
+4. **Sentence sourcing** — ✅ hand/family-curated (small set; quality +
+   kid-appropriateness matter). Not generated.
+5. **WPM visibility** — ✅ per-species personal best on the catch card, Stream+
+   only; **never sibling-visible** (upholds the no-leaderboard cozy stance).
