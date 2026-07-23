@@ -2,8 +2,11 @@
 
 Cozy pixel-art fishing game that teaches kids to type. Read `SPEC.md` first —
 it is the source of truth for all design decisions. `BUILD_PLAN.md` defines
-milestone order; work on exactly one milestone at a time. `ART.md` is the
-art pipeline: Claude writes Gemini prompts + filenames, Matt generates the PNGs.
+milestone order for the v1 core (M1–M10, all done); **`BUILD_PLAN_ADVANCED.md`
+is the plan for the post-v1 Advanced Progression epic** (tiers, phrases,
+sentences, WPM-as-goal — first buildable milestone is A0). Work on exactly one
+milestone at a time. `ART.md` is the art pipeline: Claude writes Gemini prompts
++ filenames, Matt generates the PNGs.
 
 **GitHub repo:** owner `mattohara42`, repo name `WordsPerM...` — the trailing
 `...` is literal (the name is masked this way in the agent environment; it's

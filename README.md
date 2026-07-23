@@ -13,7 +13,8 @@ now shipping post-v1 features (see `BACKLOG.md`). Hosted on Netlify — pushes t
 | File | What it is |
 |------|-----------|
 | `SPEC.md` | Design source of truth — all decisions and v1 scope |
-| `BUILD_PLAN.md` | Milestone order (M1–M8) with done-criteria |
+| `BUILD_PLAN.md` | v1 milestone order (M1–M10, all done) with done-criteria |
+| `BUILD_PLAN_ADVANCED.md` | Post-v1 Advanced Progression epic — tiers (Minnow→Muskie), phrases/sentences, WPM-as-goal; phased A0–A8 |
 | `CLAUDE.md` | Instructions for Claude Code sessions |
 | `FIRESTORE.md` | Profile/save data schema + cloud-saves setup (self-hosting) |
 | `BACKLOG.md` | Ideas parked to protect milestone scope, plus shipped post-v1 features |
