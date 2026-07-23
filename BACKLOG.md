@@ -20,22 +20,22 @@ Ideas captured during design/build. Nothing here expands the current milestone.
 ## Word pool
 - Stage 1 (home row) is intentionally small (37 words) — keep stage 1 short (few fish to first unlock). Revisit supplements list if kids exhaust it.
 - Difficulty scoring is length-based + rare-letter bump; could later weight by bigram awkwardness.
-- Junk word "sie" surfaced at stage 2 during M5 testing — cleanup pass on
-  generate-words.mjs blocklist (check for other non-words that slipped
-  through the dictionary filter).
-  - **Investigated 2026-07-23:** a re-run against a large reference wordlist
-    (dwyl/english-words, 370k entries) finds *zero* pool words missing — the
-    original dict was equally permissive, which is exactly why junk got
-    through. So this isn't a lookup fix; it's a curation call. The junk that a
-    dictionary won't catch, by category: initialisms (`usa`, `ibm`, `faq`,
-    `cpu`, `gps`, `fbi`, `cia`, `lcd`, `rpm`, `mph`), month/day abbreviations
-    (`jan`…`dec`, `mon`, `tue`, `wed`, `sat`), and proper-noun fragments
-    (`jim`, `joe`, `dan`, `sam`, `rio`, `san`), plus foreign words like `sie`.
-    ~100–150 candidates, all length-3. Needs a *decision on how aggressive to
-    be* (are abbreviations fair typing practice or not?) before writing a
-    curated stoplist — deferred to Matt. Once decided: bake the stoplist into
-    `generate-words.mjs` and add a `data.test.mjs` guard so the confirmed junk
-    can never reappear.
+- **✅ Junk-word cleanup (done 2026-07-23).** The "sie" bug turned out not to be
+  a lookup fix: a re-run against a 370k-word reference list (dwyl/english-words)
+  found *zero* missing pool words — the original dict was equally permissive, so
+  it was a curation call, not a filter gap. Curated a stop-list of **163
+  non-words** now in `data/blocklist.json` — acronyms/initialisms (`usa`, `ibm`,
+  `faq`…), abbreviations (`jan`, `dec`, `mon`, `dept`, `univ`…), foreign words
+  (`sie`, `eau`, `bon`…), and prefix/junk tokens (`non`, `pre`, `dont`). Pool
+  3014 → 2851; stage 1 (home row) untouched at 37 words, all later stages still
+  hundreds deep. `generate-words.mjs` now reads the blocklist and a
+  `data.test.mjs` guard fails if any blocklisted word reappears. Real words that
+  merely *look* like junk were deliberately kept (`don`, `bob`, `jay`, `lee`,
+  `ken`, `tom`, `sun`, `wed`, `mar`, `nil`, `gel`, `cod`, `chi`, `phi`, `psi`…).
+  - **Still deferred (a bigger, more subjective cut):** proper first names and
+    place names (`jim`, `joe`, `dan`, `texas`, `china`, `john`…) are still in the
+    pool. They're real and typeable, so removing them is a separate policy call —
+    revisit if they read as noise during a kid playtest.
 
 ## Fun brainstorm — July 2026 (all approved by Matt)
 
