@@ -43,6 +43,9 @@ not truncation). Pass that exact string to the GitHub tools; no lookup needed.
   for small reversible details, pick the most reasonable option and record
   the assumption in the PR/commit message.
 - **Open PRs ready for review, not as drafts** (Matt's preference, July 2026).
+- **After creating a PR, squash-merge it right away** — don't wait-and-watch
+  for CI/review (Matt's preference, July 2026). Netlify deploy checks here are
+  previews, not merge-blocking.
 
 ## The user
 
