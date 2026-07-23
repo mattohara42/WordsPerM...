@@ -23,6 +23,19 @@ Ideas captured during design/build. Nothing here expands the current milestone.
 - Junk word "sie" surfaced at stage 2 during M5 testing — cleanup pass on
   generate-words.mjs blocklist (check for other non-words that slipped
   through the dictionary filter).
+  - **Investigated 2026-07-23:** a re-run against a large reference wordlist
+    (dwyl/english-words, 370k entries) finds *zero* pool words missing — the
+    original dict was equally permissive, which is exactly why junk got
+    through. So this isn't a lookup fix; it's a curation call. The junk that a
+    dictionary won't catch, by category: initialisms (`usa`, `ibm`, `faq`,
+    `cpu`, `gps`, `fbi`, `cia`, `lcd`, `rpm`, `mph`), month/day abbreviations
+    (`jan`…`dec`, `mon`, `tue`, `wed`, `sat`), and proper-noun fragments
+    (`jim`, `joe`, `dan`, `sam`, `rio`, `san`), plus foreign words like `sie`.
+    ~100–150 candidates, all length-3. Needs a *decision on how aggressive to
+    be* (are abbreviations fair typing practice or not?) before writing a
+    curated stoplist — deferred to Matt. Once decided: bake the stoplist into
+    `generate-words.mjs` and add a `data.test.mjs` guard so the confirmed junk
+    can never reappear.
 
 ## Fun brainstorm — July 2026 (all approved by Matt)
 

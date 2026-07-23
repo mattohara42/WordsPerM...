@@ -616,13 +616,13 @@ function land(success) {
     burst(150, 240, 14);
     const stagesBefore = unlockedStageCount(totalCatches());
     const firstCatch = !save.collection[fish.id];
-    const amount = fish.coins + (firstCatch ? CONFIG.economy.firstCatchBonus : 0);
+    const amount = logic.catchReward(fish.coins, firstCatch, CONFIG.economy.firstCatchBonus);
     save.coins += amount;
     save.collection[fish.id] = (save.collection[fish.id] ?? 0) + 1;
     // weight roll + personal-best tracking (flavor only, no coin/difficulty effect)
     save.records ??= {};                        // back-compat for pre-records saves
     const { weight, cls } = rollWeight(fish.tier);
-    const newBest = weight > (save.records[fish.id] ?? 0);
+    const newBest = logic.isPersonalBest(save.records[fish.id], weight);
     if (newBest) save.records[fish.id] = weight;
     const freshBadges = evaluateBadges();       // marks earned; persistSave below flushes them
     persistSave();                              // the one write per catch
@@ -680,8 +680,8 @@ function recordKey(expected, correct) {
   const s = statLetter(expected);
   if (correct) {
     s.n++;
-    const dt = Date.now() - lastKeyTime;
-    if (lastKeyTime && dt < MAX_LATENCY_MS) s.msTotal += dt;
+    const now = Date.now();
+    if (logic.countsTowardTiming(lastKeyTime, now, MAX_LATENCY_MS)) s.msTotal += now - lastKeyTime;
   } else {
     s.errors++;
   }
@@ -700,7 +700,7 @@ document.addEventListener("keydown", (e) => {
   if (key === expected) {
     recordKey(expected, true);
     typed++;
-    if (phase === "reel") { tension = Math.max(0, tension - CONFIG.reel.correctRelief); renderTension(); }
+    if (phase === "reel") { ({ tension } = logic.applyTension(tension, true, CONFIG.reel)); renderTension(); }
     renderWord();
     if (typed === target.length) {
       save.stats.wordsTyped++;
@@ -712,9 +712,10 @@ document.addEventListener("keydown", (e) => {
     sfxWrong();
     el.word.classList.remove("shakeword"); void el.word.offsetWidth; el.word.classList.add("shakeword");
     if (phase === "reel") {
-      tension = Math.min(CONFIG.reel.escapeAt, tension + CONFIG.reel.errorTension);
+      const t = logic.applyTension(tension, false, CONFIG.reel);
+      tension = t.tension;
       renderTension();
-      if (tension >= CONFIG.reel.escapeAt) land(false);
+      if (t.escaped) land(false);
     }
   }
 });
@@ -1020,16 +1021,11 @@ function hasLegendary() { return Object.keys(save.collection).some(id => fishTie
 function hasLunker() {
   return Object.entries(save.records || {}).some(([id, w]) => {
     const tier = fishTierOf(id); if (!tier) return false;
-    const [min, max] = CONFIG.size.weightRangeByTier[tier] ?? CONFIG.size.weightRangeByTier.common;
-    return (w - min) / (max - min) >= CONFIG.size.lunkerFrac;
+    return logic.weightClass(CONFIG.size, tier, w) === "lunker";
   });
 }
 function ownsAllRods() { return CONFIG.shop.rods.every(r => save.upgrades.owned.rod.includes(r.id)); }
-function overallAccuracy() {
-  const L = save.stats.letters || {}; let n = 0, e = 0;
-  for (const k in L) { n += L[k].n; e += L[k].errors; }
-  return { pct: n + e ? n / (n + e) : 0, keys: n + e };
-}
+function overallAccuracy() { return logic.overallAccuracy(save.stats.letters || {}); }
 
 const BADGES = [
   { id: "firstmate",   name: "First Mate",        desc: "Catch your very first fish.",
