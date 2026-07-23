@@ -7,8 +7,10 @@ import { CONFIG } from "../config.js";
 import {
   unlockedStageCount, lettersForStages, pickTier, weightClass, rollWeight, buildReelPool,
   applyTension, catchReward, isPersonalBest, countsTowardTiming, overallAccuracy,
-  locationsForRods, rankForState, tokenize, wordCount,
+  locationsForRods, rankForState, tokenize, wordCount, tierWithFallback,
 } from "../logic.js";
+
+const TIER_ORDER = ["legendary", "rare", "uncommon", "common"];   // hardest → easiest
 
 const stages = [
   { letters: "asdf", catchesRequired: 0 },
@@ -203,6 +205,19 @@ test("wordCount is the number of reel segments a phrase takes to land", () => {
   assert.equal(wordCount("dad"), 1);
   assert.equal(wordCount("half a salad"), 3);
   assert.equal(wordCount(""), 0);
+});
+
+test("tierWithFallback degrades a rolled tier to what the spot actually has (A3)", () => {
+  const stream = new Set(["common", "uncommon", "rare"]);   // no legendary yet
+  assert.equal(tierWithFallback(stream, "legendary", TIER_ORDER), "rare"); // steps down
+  assert.equal(tierWithFallback(stream, "rare", TIER_ORDER), "rare");      // present → unchanged
+  assert.equal(tierWithFallback(stream, "common", TIER_ORDER), "common");
+  const all = new Set(["common", "uncommon", "rare", "legendary"]);        // the Pond
+  assert.equal(tierWithFallback(all, "legendary", TIER_ORDER), "legendary");
+  // only a high tier present → a low roll steps up rather than returning empty
+  assert.equal(tierWithFallback(new Set(["rare"]), "common", TIER_ORDER), "rare");
+  // nothing present → hand back the desired tier (caller handles the empty pick)
+  assert.equal(tierWithFallback(new Set(), "uncommon", TIER_ORDER), "uncommon");
 });
 
 test("buildReelPool works on phrase entries too (content-agnostic on .d)", () => {

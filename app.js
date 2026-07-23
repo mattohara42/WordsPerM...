@@ -308,6 +308,7 @@ fitScene();
 
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const rand = (a, b) => a + Math.random() * (b - a);
+const TIER_ORDER = ["legendary", "rare", "uncommon", "common"];   // rarity, hardest → easiest (A3 fish fallback)
 
 // thin wrappers over logic.js — supply the live CONFIG / equipped rod / word pool
 function rollWeight(tier)           { return logic.rollWeight(CONFIG.size, tier); }
@@ -593,8 +594,15 @@ function bite() {
   phase = "reel"; inputLocked = false;
   bobberOut(true);
   junk = Math.random() < CONFIG.junk.chance ? pick(CONFIG.junk.items) : null;
-  const tier = junk ? "common" : pickTier();          // junk reels like an easy common
-  fish = junk ? null : pick(FISH.filter(f => f.tier === tier));
+  const rolled = junk ? "common" : pickTier();        // junk reels like an easy common
+  // Fish come from the current spot (A3). If this spot has no fish of the rolled
+  // tier (e.g. the Stream has no legendary yet), degrade to the nearest tier it
+  // does have. An unpopulated spot (a future location before its fish exist)
+  // falls back to the home water so a bite never picks from an empty pool.
+  const localFish = FISH.filter(f => f.location === save.location);
+  const pool = localFish.length ? localFish : FISH.filter(f => f.location === CONFIG.tiers[0].location);
+  const tier = junk ? "common" : logic.tierWithFallback(new Set(pool.map(f => f.tier)), rolled, TIER_ORDER);
+  fish = junk ? null : pick(pool.filter(f => f.tier === tier));
 
   // Content unit for this catch (AD2): reel a phrase when typeable phrase content
   // is tagged for this spot (the Stream, A1); otherwise word-at-a-time — the Pond,
@@ -765,6 +773,7 @@ function showUnlock(letters) {
 // the earned rank. `save.location` follows the kid to the new water automatically.
 function showRankUp(tier) {
   save.location = tier.location;
+  applyScene();
   showBanner("NEW SPOT UNLOCKED!", (tier.badge + " " + tier.locationName).toUpperCase());
   later(() => showBadgeToast({ name: `${tier.label} — now fishing ${tier.locationName}` }),
         CONFIG.unlock.celebrateMs);
@@ -978,7 +987,17 @@ function switchLocation(loc) {
   save.location = loc;
   persistSave();
   renderLocations();
+  applyScene();
   setStatus("Now fishing " + CONFIG.tiers.find(t => t.location === loc).locationName + ".");
+}
+
+// A3: swap the biome scene by location. Sets a loc-<location> class on #scene;
+// CSS layers the stream background over the pond one, so this stays visually
+// safe until assets/background-stream.png exists, then the stream scene appears.
+function applyScene() {
+  const loc = save?.location ?? CONFIG.tiers[0].location;
+  el.scene.classList.remove(...CONFIG.tiers.map(t => "loc-" + t.location));
+  el.scene.classList.add("loc-" + loc);
 }
 tackleBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleControls(); });
 // picking a nav item (collection/shop/…) closes the tray; the ON/OFF toggles leave it open
@@ -995,25 +1014,39 @@ const collectionGrid = $("collection-grid");
 
 function renderCollection() {
   collectionGrid.innerHTML = "";
-  for (const f of FISH) {
-    const count = save.collection[f.id] ?? 0;
-    const cell = document.createElement("div");
-    cell.className = "cell" + (count ? "" : " unknown");
-    const shape = document.createElement("div");
-    shape.className = "cfish";
-    if (count) shape.style.setProperty("--fish-color", f.color);
-    const name = document.createElement("div");
-    name.className = "cname";
-    name.textContent = count ? f.name : "???";
-    const best = (save.records ?? {})[f.id];
-    const sub = document.createElement("div");
-    sub.className = "csub";
-    sub.textContent = count
-      ? `${f.species} × ${count}` + (best ? ` · best ${best} lb` : "")
-      : f.tier;
-    if (count) cell.title = f.blurb;
-    cell.append(shape, name, sub);
-    collectionGrid.appendChild(cell);
+  // A3: group silhouettes by location (Pond, then Stream, then Ocean), showing
+  // only spots that actually have fish. Fish with an unknown/missing location
+  // fall under the home water so nothing is ever dropped from the journal.
+  const homeLoc = CONFIG.tiers[0].location;
+  const known = new Set(CONFIG.tiers.map(t => t.location));
+  const locOf = f => (known.has(f.location) ? f.location : homeLoc);
+  const locs = CONFIG.tiers.map(t => t.location).filter(loc => FISH.some(f => locOf(f) === loc));
+  for (const loc of locs) {
+    const tier = CONFIG.tiers.find(t => t.location === loc);
+    const header = document.createElement("div");
+    header.className = "cgroup";
+    header.textContent = `${tier.badge} ${tier.locationName}`;
+    collectionGrid.appendChild(header);
+    for (const f of FISH.filter(f => locOf(f) === loc)) {
+      const count = save.collection[f.id] ?? 0;
+      const cell = document.createElement("div");
+      cell.className = "cell" + (count ? "" : " unknown");
+      const shape = document.createElement("div");
+      shape.className = "cfish";
+      if (count) shape.style.setProperty("--fish-color", f.color);
+      const name = document.createElement("div");
+      name.className = "cname";
+      name.textContent = count ? f.name : "???";
+      const best = (save.records ?? {})[f.id];
+      const sub = document.createElement("div");
+      sub.className = "csub";
+      sub.textContent = count
+        ? `${f.species} × ${count}` + (best ? ` · best ${best} lb` : "")
+        : f.tier;
+      if (count) cell.title = f.blurb;
+      cell.append(shape, name, sub);
+      collectionGrid.appendChild(cell);
+    }
   }
 }
 
@@ -1368,6 +1401,7 @@ function activateProfile(id) {
   el.escaped.textContent = save.stats.escapes ?? 0;
   $("who").textContent = save.avatar + " " + save.name;
   applyBoatSkin();
+  applyScene();                      // A3: show the biome for wherever this kid last fished
   persistSave();                     // records the new session (sessionCount/lastPlayed)
   startCast();
 }

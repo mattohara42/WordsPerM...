@@ -91,6 +91,20 @@ test("no duplicate fish ids", () => {
   assert.equal(ids.length, new Set(ids).size, "duplicate fish id");
 });
 
+test("every fish has a known location (A3)", () => {
+  const locs = new Set(CONFIG.tiers.map(t => t.location));
+  assert.equal(offenders(fish, f => !locs.has(f.location), f => `${f.id}:${f.location}`), "", "unknown fish location");
+});
+
+test("the home water has a fish for every rollable tier (so it never needs the A3 fallback)", () => {
+  const rollable = new Set();
+  for (const odds of Object.values(CONFIG.bite.tierOddsByRod))
+    for (const [tier, p] of Object.entries(odds)) if (p > 0) rollable.add(tier);
+  const home = CONFIG.tiers[0].location;
+  const homeTiers = new Set(fish.filter(f => f.location === home).map(f => f.tier));
+  for (const t of rollable) assert.ok(homeTiers.has(t), `home water "${home}" has no ${t} fish`);
+});
+
 test("every fish tier can actually be rolled by some rod", () => {
   const rollable = new Set();
   for (const odds of Object.values(CONFIG.bite.tierOddsByRod))
