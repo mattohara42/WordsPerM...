@@ -5,6 +5,10 @@ it is the source of truth for all design decisions. `BUILD_PLAN.md` defines
 milestone order; work on exactly one milestone at a time. `ART.md` is the
 art pipeline: Claude writes Gemini prompts + filenames, Matt generates the PNGs.
 
+**GitHub repo:** owner `mattohara42`, repo name `WordsPerM...` — the trailing
+`...` is literal (the name is masked this way in the agent environment; it's
+not truncation). Pass that exact string to the GitHub tools; no lookup needed.
+
 ## Architecture rules
 
 - **Vanilla JS, no build step.** Three files: `index.html`, `app.js`,
