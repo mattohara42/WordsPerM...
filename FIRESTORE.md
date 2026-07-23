@@ -87,3 +87,51 @@ cheap and the offline/localStorage fallback trivial (the doc IS the save file).
 - Per-session history docs (aggregates only)
 - Multi-device merge logic
 - Firebase Auth per kid
+
+## M4b live-verification checklist
+
+The sync code (`app.js`) is complete; M4b is "done" once the signed-in
+cross-device path is verified live. Sign-in popups need HTTPS, so test on the
+production URL **`https://fishtyping.netlify.app`** — not a `deploy-preview-*`
+URL (different subdomain won't match the authorized domain).
+
+### One-time setup (Firebase console, `familyhub-5fc43` project — shared with Family Hub)
+
+- [ ] **Authorize the domain.** Auth → Settings → Authorized domains → add
+  `fishtyping.netlify.app`. (Sign-in popup is rejected without it.)
+- [ ] **Merge the rules.** Firestore Database → Rules → paste *only* the
+  `match /typingFishing/{profileId} { … }` block from `firestore.rules`
+  *inside* the existing `match /databases/{database}/documents { … }` block —
+  **do not** overwrite the Family Hub rules — then Publish.
+- [ ] **Confirm HTTPS deploy** at `https://fishtyping.netlify.app`.
+
+### Walkthrough (on the profile picker, watch the sync bar)
+
+- [ ] **SDK loads** — button reads **"SIGN IN TO SYNC"**. (If it says *"playing
+  offline"* and the button is hidden, the Firebase SDK failed to load.)
+- [ ] **Sign in** — click it, pick the parent Google account → status flips to
+  **"☁ synced · your@email"**, button becomes **SIGN OUT**.
+- [ ] **Write-on-catch** — land one fish → Firestore console shows a doc per kid
+  in the `typingFishing` collection, each with `ownerUid` = your uid and the
+  live fields (`totalCatches`, `coins`, `collection`, `stats`, …).
+- [ ] **Read-on-launch (the real bar)** — open a *second* browser/device, sign
+  in with the *same* account → the kids' profiles appear in the picker, pulled
+  from Firestore (not created fresh). Cross-device sync working.
+- [ ] **Offline fallback** — sign out (or throttle network offline) → game still
+  plays and saves locally with **no errors**. (Verified in-sandbox; sanity-check
+  live.)
+
+**Done when:** a catch on one device shows up on another (newest `updatedAt`
+wins — reconciled by timestamp, no merge logic), and two profiles keep fully
+separate state across reloads.
+
+### Failure signatures (DevTools → Console)
+
+Each setup gap emits a specific breadcrumb, so the error names the fix:
+
+| Console message | Cause | Fix |
+|-----------------|-------|-----|
+| `Sync unavailable; playing offline on localStorage.` | Firebase SDK didn't load (network/CDN, or `firebase.sdkVersion` in `config.js` 404'd) | not a setup step — check the CDN/version |
+| `sign-in failed` + `auth/unauthorized-domain` | domain not authorized | setup step 1 |
+| `sync push failed` + *Missing or insufficient permissions* | rules not merged/published | setup step 2 |
+| `profile pull failed` | rules or `ownerUid` mismatch on read | setup step 2 |
