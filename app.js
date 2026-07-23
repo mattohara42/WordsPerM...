@@ -36,6 +36,10 @@ function blankProfile(name, avatar) {
     name, avatar,
     createdAt: now, updatedAt: now,
     totalCatches: 0, stage: 1, coins: 0,
+    // Advanced Progression (A0): rank + unlockedLocations derive from owned rods
+    // (see recomputeLocations); `location` is the current fishing spot.
+    rank: CONFIG.tiers[0].rank, location: CONFIG.tiers[0].location,
+    unlockedLocations: [CONFIG.tiers[0].location],
     // upgrades carries owned lists too (FIRESTORE.md shows equipped only; the
     // shop needs to know what's already bought so it can't be re-purchased)
     upgrades: { rod: "stick", bait: "worm", boat: "classic",
@@ -189,6 +193,22 @@ function recomputeUnlocks() {
   unlockedLetters = logic.lettersForStages(CONFIG.unlock.stages, n);
   WORDS = FULL_POOL.filter(e => [...e.letters].every(l => unlockedLetters.has(l)));
   renderKeyLocks();
+}
+
+// ---- Advanced Progression (A0): rank & location derive from owned rods ----
+// unlockedLocations/rank are a cache of what the owned rods imply; recompute on
+// load (migrates pre-A0 saves for free) and after buying a rod.
+function recomputeLocations() {
+  save.location ??= CONFIG.tiers[0].location;
+  save.unlockedLocations = logic.locationsForRods(CONFIG.tiers, CONFIG.shop.rods, save.upgrades.owned.rod);
+  save.rank = logic.rankForState(CONFIG.tiers, save.unlockedLocations);
+}
+// Buying a location-unlocking rod graduates the profile. Returns the tier(s)
+// newly reached (for the rank-up ceremony); empty on a rod that unlocks nothing.
+function graduateLocations() {
+  const before = new Set(save.unlockedLocations ?? []);
+  recomputeLocations();
+  return CONFIG.tiers.filter(t => !before.has(t.location) && save.unlockedLocations.includes(t.location));
 }
 
 // Dad joke flavor text — one pool per moment, picked at random.
@@ -658,21 +678,37 @@ function land(success) {
   later(startCast, CONFIG.reel.recastDelayMs);
 }
 
-// the "new letter!" moment: banner over the pond, fresh keys pulse on the guide
-function showUnlock(letters) {
+// shared celebration banner over the pond (letter unlocks + A0 rank-ups)
+function showBanner(title, big) {
   const banner = $("unlock-banner");
-  banner.querySelector(".letters").textContent = letters.join(" ").toUpperCase();
+  banner.querySelector(".banner-title").textContent = title;
+  banner.querySelector(".letters").textContent = big;
   banner.classList.add("show");
   burst(360, 150, 16);
   sfxUnlock();
+  setTimeout(() => banner.classList.remove("show"), CONFIG.unlock.celebrateMs);
+  return banner;
+}
+
+// the "new letter!" moment: banner over the pond, fresh keys pulse on the guide
+function showUnlock(letters) {
+  showBanner("NEW LETTERS UNLOCKED!", letters.join(" ").toUpperCase());
   letters.forEach(l => {
     const k = guide.querySelector(`.key[data-ch="${l}"]`);
     if (k) k.classList.add("fresh");
   });
-  setTimeout(() => {
-    banner.classList.remove("show");
-    guide.querySelectorAll(".key.fresh").forEach(k => k.classList.remove("fresh"));
-  }, CONFIG.unlock.celebrateMs);
+  setTimeout(() => guide.querySelectorAll(".key.fresh").forEach(k => k.classList.remove("fresh")),
+             CONFIG.unlock.celebrateMs);
+}
+
+// A0 rank-up: reuses the unlock banner for the new spot + the badge toast for
+// the earned rank. `save.location` follows the kid to the new water automatically.
+function showRankUp(tier) {
+  save.location = tier.location;
+  showBanner("NEW SPOT UNLOCKED!", (tier.badge + " " + tier.locationName).toUpperCase());
+  later(() => showBadgeToast({ name: `${tier.label} — now fishing ${tier.locationName}` }),
+        CONFIG.unlock.celebrateMs);
+  persistSave();
 }
 
 // record a processed keystroke for the silent adaptive-meter stats
@@ -819,8 +855,32 @@ const tackleBtn = $("tacklebox");
 const controlsTray = $("controls");
 function toggleControls(open) {
   const show = open ?? controlsTray.hidden;
+  if (show) renderLocations();
   controlsTray.hidden = !show;
   tackleBtn.setAttribute("aria-expanded", String(show));
+}
+
+// A0 location switcher: one button per unlocked spot; hidden until the kid has
+// graduated past the Pond (nothing to switch between with only one spot).
+function renderLocations() {
+  const box = $("locations");
+  const locs = save.unlockedLocations ?? [CONFIG.tiers[0].location];
+  box.hidden = locs.length < 2;
+  box.innerHTML = "";
+  for (const loc of locs) {
+    const tier = CONFIG.tiers.find(t => t.location === loc);
+    const btn = document.createElement("button");
+    btn.className = "toggle-btn loc" + (save.location === loc ? " active" : "");
+    btn.textContent = "📍 " + tier.locationName;
+    btn.addEventListener("click", () => switchLocation(loc));
+    box.appendChild(btn);
+  }
+}
+function switchLocation(loc) {
+  save.location = loc;
+  persistSave();
+  renderLocations();
+  setStatus("Now fishing " + CONFIG.tiers.find(t => t.location === loc).locationName + ".");
 }
 tackleBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleControls(); });
 // picking a nav item (collection/shop/…) closes the tray; the ON/OFF toggles leave it open
@@ -926,10 +986,13 @@ function renderShopList(items, container, kind, hint) {
         save.coins -= item.cost;
         save.upgrades.owned[kind].push(item.id);
         save.upgrades[kind] = item.id;
+        // A0: a rod may unlock a new fishing spot — graduate + celebrate
+        const freshTiers = kind === "rod" ? graduateLocations() : [];
         const freshBadges = evaluateBadges();   // e.g. "Tackle Box Tycoon" on the last rod
         persistSave();
         el.coins.textContent = save.coins;
         renderShop();
+        if (freshTiers.length) { toggleShop(false); freshTiers.forEach(t => showRankUp(t)); }
         freshBadges.forEach((b, i) => later(() => showBadgeToast(b), 300 + i * 1800));
       });
     }
@@ -1195,6 +1258,7 @@ function activateProfile(id) {
   save = doc;
   save.upgrades.boat ??= "classic";                  // back-compat: pre-boats saves
   save.upgrades.owned.boat ??= ["classic"];
+  recomputeLocations();                              // A0: derive rank/locations, migrates pre-A0 saves
   localStorage.setItem(ACTIVE_KEY, id);
   save.stats.sessionCount = (save.stats.sessionCount ?? 0) + 1;
   gameGen++;

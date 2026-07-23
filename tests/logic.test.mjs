@@ -7,6 +7,7 @@ import { CONFIG } from "../config.js";
 import {
   unlockedStageCount, lettersForStages, pickTier, weightClass, rollWeight, buildReelPool,
   applyTension, catchReward, isPersonalBest, countsTowardTiming, overallAccuracy,
+  locationsForRods, rankForState,
 } from "../logic.js";
 
 const stages = [
@@ -145,6 +146,32 @@ test("countsTowardTiming ignores the first key of a word and long idle gaps", ()
   assert.equal(countsTowardTiming(0, 1000, 5000), false);      // no prior key this word
   assert.equal(countsTowardTiming(1000, 1300, 5000), true);    // 300ms gap → counts
   assert.equal(countsTowardTiming(1000, 7000, 5000), false);   // 6s gap → kid stepped away
+});
+
+const tiers = [
+  { rank: "minnow",   location: "pond"   },
+  { rank: "mackerel", location: "stream" },
+  { rank: "marlin",   location: "ocean"  },
+];
+const rods = [
+  { id: "stick"  },                              // no unlocksLocation
+  { id: "bamboo", unlocksLocation: "stream" },
+  { id: "carbon", unlocksLocation: "ocean"  },
+];
+
+test("locationsForRods: pond is always open; rods add their locations", () => {
+  assert.deepEqual(locationsForRods(tiers, rods, ["stick"]), ["pond"]);
+  assert.deepEqual(locationsForRods(tiers, rods, ["stick", "bamboo"]), ["pond", "stream"]);
+  // owning a rod twice / owning a locationless rod doesn't duplicate or add
+  assert.deepEqual(locationsForRods(tiers, rods, ["stick", "carbon", "bamboo"]).sort(),
+                   ["ocean", "pond", "stream"]);
+});
+
+test("rankForState: furthest unlocked location, never below the home rank", () => {
+  assert.equal(rankForState(tiers, ["pond"]), "minnow");
+  assert.equal(rankForState(tiers, ["pond", "stream"]), "mackerel");
+  assert.equal(rankForState(tiers, ["pond", "stream", "ocean"]), "marlin");
+  assert.equal(rankForState(tiers, []), "minnow");   // defends to the home rank
 });
 
 test("overallAccuracy sums correct vs. error keystrokes across the letter map", () => {

@@ -81,6 +81,25 @@ export function overallAccuracy(letters) {
   return { pct: n + e ? n / (n + e) : 0, keys: n + e };
 }
 
+// Which locations a profile has unlocked, derived from the rods it owns (like
+// letters derive from catches). tiers[0].location is the always-open home spot;
+// each owned rod with `unlocksLocation` adds that spot. Order-preserving, deduped.
+export function locationsForRods(tiers, rods, ownedRodIds) {
+  const fromRods = rods.filter(r => r.unlocksLocation && ownedRodIds.includes(r.id))
+                       .map(r => r.unlocksLocation);
+  return [...new Set([tiers[0].location, ...fromRods])];
+}
+
+// The earned rank: the furthest tier whose location the profile has unlocked.
+// tiers are ordered easiest→hardest; pond is always unlocked so this is never
+// below tiers[0].rank. (Muskie is a prestige rank awarded on the legendary
+// catch, not location-derived — see BUILD_PLAN_ADVANCED A8.)
+export function rankForState(tiers, locations) {
+  let rank = tiers[0].rank;
+  for (const t of tiers) if (locations.includes(t.location)) rank = t.rank;
+  return rank;
+}
+
 // Words matched to a fish's difficulty, mixing in easier ones only when the
 // unlocked pool is too thin to fill minSize (e.g. stage 1's lone hard word).
 export function buildReelPool(words, difficulty, minSize) {
