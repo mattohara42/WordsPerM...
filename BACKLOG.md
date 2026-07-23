@@ -90,10 +90,47 @@ difficulty ramp applied to a beginner.
 | **Minnow** | **Pond** | still-water (current game) | single words | letters, home-row-out — *this is v1, untouched* |
 | **Mackerel** | **Stream** | fly fishing | multi-word phrases | capitals + punctuation begin (Shift as the parked "late letter unlock") |
 | **Marlin** | **Ocean** | sport fishing | full sentences | fluency, rhythm, personal-best pacing |
+| **Muskie** | **Ocean (prestige)** | the legend | (no new content) | mastery — *earned, not a new biome* |
 
 Rank is per-profile and permanent (you don't get demoted); a kid can always drop
 back to a lower pond for a cozy session. Advancement gate mirrors the existing
 letter-unlock model (fish-count / mastery milestone), not a speed test.
+
+**Muskie = the prestige capstone (four M's, and it closes a loop already in the
+data).** `data/fish.json` already has **Muskie Quixote** as the legendary
+nemesis. So Muskie isn't a fourth biome — it's the master-angler rank you earn
+*inside the Ocean* by finally landing the un-landable legendary. WordsPer**M**…,
+four **M**-ranks (Minnow → Mackerel → Marlin → Muskie), and the existing
+legendary fish becomes the finish line. Pairs with the parked "Named nemesis
+fish" backlog item (recurring lore + a bigger landing celebration).
+
+### Graduation is gated by rods, and celebrated (decided)
+
+- **Rods are the gate.** The shop already sells rods. Entering a new location is
+  unlocked by *earning that tier's rod* — a **fly rod** to fish the Stream, a
+  **deep-sea rod** for the Ocean — so progression rides the existing economy
+  instead of a parallel system. (Rod cost/earn tuning → `config`, TBD when
+  scoped.)
+- **Rank-up ceremony.** Reuse the M5 "new letter unlocked!" celebration pattern
+  and the badge-toast system, but *bigger* for a rank-up — a one-time **"You made
+  Mackerel!"** moment. It's the emotional payoff that makes a kid want the next
+  tier. Each rank also fits naturally as a badge (`config.badges`).
+
+### Fish are separated by tier (decided)
+
+Each location has its **own distinct fish set**, not shared species that scale:
+
+- **Pond** — the current pond fish (`data/fish.json` as-is).
+- **Stream** — fly-fishing quarry: trout, salmon, grayling, etc.
+- **Ocean** — sport fish: marlin, tuna, mahi, etc., up to the **Muskie Quixote**
+  legendary capstone.
+
+Rationale: distinct sets make each biome feel like a *new place* and give the
+collection screen fresh silhouettes to chase per tier (the "catch 'em all" pull
+resets pleasantly at each graduation). The existing 3-rarity-tier + word-
+difficulty mapping repeats *within* each set. Art scope grows accordingly →
+`ART.md` (Gemini prompts + Matt generates); new fish are new tagged entries in
+the same `data/fish.json` structure, no new system.
 
 ### WPM: a goal, not a punishment (Matt's explicit call, July 2026)
 
@@ -126,7 +163,9 @@ concrete identities (Pond / Stream / Ocean). Real art scope → `ART.md` (Gemini
 prompts + Matt generates). Palette stays the locked ~16-color set.
 
 ### Open threads to resolve when this is scoped for real
-- Exact advancement gates per tier (catch count? species mastery? never speed).
+- Exact advancement gates per tier — catch count vs. species mastery (never
+  speed). Rods are the *gate mechanism* (decided); the *earn threshold* is still
+  TBD.
 - Punctuation/capital unlock order — is it its own progression inside Stream, or
   a prerequisite to entering it?
 - How personal-best WPM is shown so it reads as an invitation, not a scoreboard
@@ -134,3 +173,5 @@ prompts + Matt generates). Palette stays the locked ~16-color set.
   stance).
 - Sentence content source & schema — the word pool has no phrase/sentence entry
   type today; that's a real data-shape addition.
+- Stream/Ocean fish rosters — pick the actual species per set and their rarity
+  tiers (fish *are* separated by tier, decided; the specific lists are open).
