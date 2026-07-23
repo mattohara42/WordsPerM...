@@ -246,6 +246,10 @@ h1 {
 }
 #word .done { color: var(--moss); }
 #word .todo { color: var(--ink); }
+/* the space you're about to type in a phrase (A1) — a soft, pulsing ␣ cue so the
+   spacebar is obvious; letters use the plain .todo colour above */
+#word .cur.space { color: var(--gold); opacity: 0.9; animation: spacecue 1s ease-in-out infinite; }
+@keyframes spacecue { 50% { opacity: 0.4; } }
 #word.shakeword { animation: shakeword 0.16s; }
 @keyframes shakeword { 25% { transform: translateX(calc(-50% - 6px)); } 75% { transform: translateX(calc(-50% + 6px)); } }
 #word.pop { animation: wordpop 0.22s ease; }
@@ -522,6 +526,6 @@ h1 {
 @media (prefers-reduced-motion: reduce) {
   .wave, #rig, .cloud, #glitter, #tint, .reed, #bobber, #meter-fill.danger { animation: none !important; }
   .finger, #line, #fish { transition: none; }
-  #scene.shake, #word.shakeword, #word.pop, #unlock-banner.show, .key.fresh, #fish.hooked { animation: none; }
+  #scene.shake, #word.shakeword, #word.pop, #unlock-banner.show, .key.fresh, #fish.hooked, #word .cur.space { animation: none; }
   .ripple, .p, .coinfloat { display: none; }
 }

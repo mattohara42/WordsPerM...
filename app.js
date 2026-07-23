@@ -654,6 +654,26 @@ function wordComplete() {
   later(() => { inputLocked = false; nextReelWord(); }, CONFIG.reel.wordPauseMs);
 }
 
+// The reel content's last unit was just typed — land it. Word mode defers to
+// wordComplete's 450ms beat; a phrase pulls its final word straight to the boat
+// (its beats already happened at each typed space).
+function reelComplete() {
+  if (reelMode === "phrase") { pullFishOneWord(); if (wordsLeft <= 0) land(true); }
+  else wordComplete();
+}
+
+// Forgiving spacebar (A1): it only ever advances between the words of a phrase,
+// and it never touches tension — a mistimed or missing space can't cost the
+// catch, so "slow + careful always lands" still holds. Anything else is a no-op.
+function handleSpace() {
+  if (phase === "reel" && reelMode === "phrase" && target[typed] === " ") {
+    typed++;                     // the word before the space is done
+    save.stats.wordsTyped++;
+    pullFishOneWord();           // a space always leaves ≥1 word, so this never lands
+    renderWord();
+  }
+}
+
 function land(success) {
   phase = "done"; inputLocked = true;
   stopSwim();
@@ -769,10 +789,12 @@ document.addEventListener("keydown", (e) => {
   if (!save || pickerOpen || collectionOpen || shopOpen || nudgeOpen || progressOpen || journalOpen || inputLocked) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key.length !== 1) return;
+  if (e.key === " ") { e.preventDefault(); handleSpace(); return; }   // forgiving spacebar (A1)
   const key = e.key.toLowerCase();
   if (!/[a-z]/.test(key)) return;
 
   const expected = target[typed];
+  if (expected === " ") return;    // a letter where a space is due → forgiving no-op
   if (key === expected) {
     recordKey(expected, true);
     typed++;
@@ -781,7 +803,7 @@ document.addEventListener("keydown", (e) => {
     if (typed === target.length) {
       save.stats.wordsTyped++;
       if (phase === "cast") startWait();
-      else if (phase === "reel") wordComplete();
+      else if (phase === "reel") reelComplete();
     }
   } else {
     recordKey(expected, false);
