@@ -44,20 +44,26 @@ test("no blocklisted non-word slips into the pool (the 'sie' class of bug)", () 
   assert.equal(offenders(words, w => blocklist.has(w.w), w => w.w), "", "blocklisted word in pool");
 });
 
-test("phrases.json is a non-empty array of well-formed entries (A1)", () => {
+test("phrases.json is a non-empty array of well-formed entries (A1/A2)", () => {
   assert.ok(Array.isArray(phrases) && phrases.length > 0);
-  // lowercase words joined by single spaces, 2+ words (it's a phrase) — this also
-  // rules out leading/trailing/double spaces and any non-lowercase-alpha character
-  assert.equal(offenders(phrases, p => !/^[a-z]+( [a-z]+)+$/.test(p.text), p => p.text), "",
-    "phrase.text must be lowercase words joined by single spaces, 2+ words");
+  // letters (either case, A2 capitals) joined by single spaces, 2+ words — this
+  // also rules out leading/trailing/double spaces and any non-alpha character
+  assert.equal(offenders(phrases, p => !/^[A-Za-z]+( [A-Za-z]+)+$/.test(p.text), p => p.text), "",
+    "phrase.text must be words joined by single spaces, 2+ words");
   assert.equal(offenders(phrases, p => !Number.isInteger(p.d) || p.d < 1 || p.d > 4, p => p.text), "", "difficulty d not in 1..4");
   assert.equal(offenders(phrases, p => !p.theme, p => p.text), "", "missing theme");
   assert.equal(offenders(phrases, p => !p.location, p => p.text), "", "missing location");
 });
 
-test("phrase.letters is the sorted unique letters of the text, spaces excluded", () => {
-  const wrong = p => p.letters !== [...new Set(p.text.replace(/ /g, ""))].sort().join("");
-  assert.equal(offenders(phrases, wrong, p => `${p.text}→${p.letters}`), "", "letters ≠ dedup-sorted(text)");
+test("phrase.letters is the sorted unique lowercase base letters of the text", () => {
+  const wrong = p => p.letters !== [...new Set(p.text.toLowerCase().replace(/ /g, ""))].sort().join("");
+  assert.equal(offenders(phrases, wrong, p => `${p.text}→${p.letters}`), "", "letters ≠ dedup-sorted(lowercase text)");
+});
+
+test("capitals appear only in content tagged for a caps location (A2)", () => {
+  const capsOk = new Set(CONFIG.capitals.fromLocations);
+  const bad = p => /[A-Z]/.test(p.text) && !capsOk.has(p.location);
+  assert.equal(offenders(phrases, bad, p => `${p.text}@${p.location}`), "", "capital in a non-caps location");
 });
 
 test("no duplicate phrases", () => {
@@ -67,7 +73,7 @@ test("no duplicate phrases", () => {
 });
 
 test("no blocklisted non-word slips into a phrase (same guard as the word pool)", () => {
-  const bad = p => p.text.split(" ").some(w => blocklist.has(w));
+  const bad = p => p.text.toLowerCase().split(" ").some(w => blocklist.has(w));
   assert.equal(offenders(phrases, bad, p => p.text), "", "blocklisted word in phrase");
 });
 

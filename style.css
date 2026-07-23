@@ -363,6 +363,9 @@ h1 {
 }
 @keyframes freshpulse { from { box-shadow: 0 0 4px rgba(240,192,96,0.3); } to { box-shadow: 0 0 16px rgba(240,192,96,0.85); } }
 .key.target { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 10px rgba(240,192,96,0.45); }
+/* A2: the two Shift keys sit quietly like the ghost anchor until a capital lights them */
+.key.shift-key { opacity: 0.35; }
+.key.shift-key.target { opacity: 1; }
 .finger {
   position: absolute;
   border: 1.5px solid rgba(242,237,227,0.28); background: rgba(242,237,227,0.05);
