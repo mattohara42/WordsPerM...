@@ -165,4 +165,11 @@ export const CONFIG = {
     // Auth's signInWithPopup uses the project's default client automatically).
     oauthClientId: "1023822683234-e0pslac1cag5ju2o26gl5c9kq36udr7q.apps.googleusercontent.com",
   },
+
+  // Dev/test affordances for the BUILD + PLAYTEST phase — not for real players.
+  // When `testShortcuts` is on, the tackle box shows a clearly-labelled 🧪 button
+  // that grants every rod (unlocking every fishing spot) and jumps to the
+  // furthest one, so a playtest reaches the advanced tiers without grinding.
+  // Flip `testShortcuts` to false — or delete this block — before a public release.
+  dev: { testShortcuts: true, testCoins: 200 },
 };
