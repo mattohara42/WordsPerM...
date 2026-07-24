@@ -4,8 +4,9 @@ Companion to `SPEC.md`, `BUILD_PLAN.md` (v1), and the **Advanced Progression**
 epic in `BACKLOG.md`. This breaks the epic into sized, ordered, verifiable
 milestones — same rules as v1: **one milestone at a time, each ends playable.**
 
-**Status:** A3 code-complete (2026-07-23) — the only outstanding piece is the
-Stream background PNG (art request in `ART.md`); A4 is next. **Prerequisite:** close v1 (M4b
+**Status:** A4 done (2026-07-23) — **Phase 1 (the Stream) ships**; A5 (Ocean)
+is next. The only art still outstanding for Phase 1 is the Stream background PNG
+(request in `ART.md`); the code lights up when it lands. **Prerequisite:** close v1 (M4b
 Firestore live-verified) first — this epic adds new save fields, so it wants a
 stable sync base and a clean migration story. (Met — v1 complete.)
 
@@ -100,13 +101,17 @@ temporarily serve existing words so the plumbing is verifiable in isolation).
   the **scene visual is the pond scene until `background-stream.png` lands**,
   then it appears with no code change.)*
 
-### A4 — Fly-cast rhythm mechanic + WPM personal-best (intro)
-- `logic.js`: `computeWpm()`, `isPersonalBestWpm()` + tests; migrate `records`
-  to `{weight, wpm}`.
-- `app.js`: gentle cast-rhythm feedback (even cadence → "nice cast" flavor —
-  cozy, never a penalty); personal-best WPM shown on the Stream catch card only.
+### ✅ A4 — Fly-cast rhythm mechanic + WPM personal-best (intro) (done 2026-07-23)
+- `logic.js`: `computeWpm()`, `isPersonalBestWpm()`, `isEvenCadence()` + tests;
+  `records[fishId]` widened `weight → {weight, wpm}` with a lazy migration.
+- `app.js`: WPM measured over **active** reel time (idle gaps excluded, so a
+  pause never hurts); the Stream catch card shows a **self-paced per-species
+  personal-best WPM** (Stream/phrase catches only — the Pond shows none). An
+  even fly-cast cadence on graduated waters earns a cozy "nice cast" line
+  (`PUNS.niceCast`) — praise only, never a penalty. Tuning in `CONFIG.flyCast`.
 - **Done when:** landing a Stream fish shows a self-paced personal-best WPM; the
-  Pond is unaffected; missing your best is never a fail state.
+  Pond is unaffected; missing your best is never a fail state. *(Verified: 45
+  unit tests + a WPM/records/migration simulation.)*
 
 **→ Stream ships:** a Mackerel kid fly-fishes real phrases, learns spacebar +
 capitals, and chases their own best time.

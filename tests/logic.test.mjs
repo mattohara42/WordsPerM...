@@ -8,6 +8,7 @@ import {
   unlockedStageCount, lettersForStages, pickTier, weightClass, rollWeight, buildReelPool,
   applyTension, catchReward, isPersonalBest, countsTowardTiming, overallAccuracy,
   locationsForRods, rankForState, tokenize, wordCount, tierWithFallback,
+  computeWpm, isPersonalBestWpm, isEvenCadence,
 } from "../logic.js";
 
 const TIER_ORDER = ["legendary", "rare", "uncommon", "common"];   // hardest → easiest
@@ -205,6 +206,31 @@ test("wordCount is the number of reel segments a phrase takes to land", () => {
   assert.equal(wordCount("dad"), 1);
   assert.equal(wordCount("half a salad"), 3);
   assert.equal(wordCount(""), 0);
+});
+
+test("computeWpm is 5-chars-per-word over active minutes, rounded (A4)", () => {
+  assert.equal(computeWpm(25, 60000), 5);     // 25 chars = 5 words in 1 min → 5 wpm
+  assert.equal(computeWpm(100, 60000), 20);
+  assert.equal(computeWpm(50, 30000), 20);    // 10 words in half a minute → 20 wpm
+  assert.equal(computeWpm(0, 60000), 0);      // no chars
+  assert.equal(computeWpm(25, 0), 0);         // no time → never divides by zero
+});
+
+test("isPersonalBestWpm beats the stored best, and any real wpm beats no record", () => {
+  assert.equal(isPersonalBestWpm(undefined, 20), true);
+  assert.equal(isPersonalBestWpm(null, 20), true);
+  assert.equal(isPersonalBestWpm(18, 20), true);
+  assert.equal(isPersonalBestWpm(20, 20), false);   // a tie is not a new best
+  assert.equal(isPersonalBestWpm(25, 20), false);
+  assert.equal(isPersonalBestWpm(undefined, 0), false); // a zero wpm is never a best
+});
+
+test("isEvenCadence praises a steady cadence and withholds on spread/short input", () => {
+  assert.equal(isEvenCadence([200, 210, 190, 205], 2, 0.5), true);   // tight → even
+  assert.equal(isEvenCadence([120, 600, 130, 700], 2, 0.5), false);  // lumpy → not even
+  assert.equal(isEvenCadence([200], 2, 0.5), false);                 // too few gaps
+  assert.equal(isEvenCadence([], 2, 0.5), false);                    // nothing typed
+  assert.equal(isEvenCadence([300, 300, 300], 2, 0.5), true);        // perfectly even
 });
 
 test("tierWithFallback degrades a rolled tier to what the spot actually has (A3)", () => {

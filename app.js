@@ -47,7 +47,7 @@ function blankProfile(name, avatar) {
     upgrades: { rod: "stick", bait: "worm", boat: "classic",
                 owned: { rod: ["stick"], bait: ["worm"], boat: ["classic"] } },
     collection: {},                                   // fishId → count
-    records: {},                                      // fishId → best weight (lb)
+    records: {},                                      // fishId → { weight (lb best), wpm (best, Stream+) } (A4)
     badges: [],                                       // earned badge ids (journal)
     stats: { letters: {}, wordsTyped: 0, escapes: 0, sessionCount: 0, lastPlayed: now },
     jokesEndured: 0,                                  // reserved (backlog groan counter)
@@ -208,6 +208,15 @@ function recomputeLocations() {
   save.unlockedLocations = logic.locationsForRods(CONFIG.tiers, CONFIG.shop.rods, save.upgrades.owned.rod);
   save.rank = logic.rankForState(CONFIG.tiers, save.unlockedLocations);
 }
+// A4: widen records[fishId] from a bare weight to { weight, wpm }. Pre-A4 saves
+// stored just the number; convert in place once on load. Idempotent.
+function migrateRecords() {
+  save.records ??= {};
+  for (const id in save.records) {
+    const r = save.records[id];
+    if (typeof r === "number") save.records[id] = { weight: r, wpm: null };
+  }
+}
 // Buying a location-unlocking rod graduates the profile. Returns the tier(s)
 // newly reached (for the rank-up ceremony); empty on a rod that unlocks nothing.
 function graduateLocations() {
@@ -229,6 +238,13 @@ const PUNS = {
     "Waiting… just for the halibut",
     "Any second now. I'm not squidding",
     "Patience… good things come to those with bait",
+  ],
+  // A4: even fly-cast cadence (Stream+). Praise only — never shown as a miss.
+  niceCast: [
+    "Smooth cast! You've got the rhythm 🎣",
+    "Ooh, buttery. That fly landed like a feather",
+    "Nice and even — textbook fly cast",
+    "That's the rhythm! The trout are impressed",
   ],
   bite: [
     "Fish on! Holy mackerel!",
@@ -282,6 +298,28 @@ let gameGen = 0;           // bumped on each profile activation; stales old time
 let lastKeyTime = 0;                 // 0 = start of a word, don't time the first letter
 const MAX_LATENCY_MS = 5000;         // ignore gaps this long (kid stepped away)
 function statLetter(l) { return (save.stats.letters[l] ??= { n: 0, errors: 0, msTotal: 0 }); }
+
+// A4: per-catch reel timing for a self-paced WPM (phrase mode only). Active
+// typing time — idle gaps excluded — so a kid who pauses isn't punished. Reset
+// at each bite; read at land. Separate from the stats' lastKeyTime above.
+let reelChars = 0, reelActiveMs = 0, reelLastKeyMs = 0;
+function tickReelWpm() {
+  if (phase !== "reel" || reelMode !== "phrase") return;
+  const now = Date.now();
+  if (logic.countsTowardTiming(reelLastKeyMs, now, MAX_LATENCY_MS)) reelActiveMs += now - reelLastKeyMs;
+  reelLastKeyMs = now;
+  reelChars++;
+}
+
+// A4: fly-cast rhythm — inter-key gaps while typing a cast word, for a cozy
+// "nice cast" line on graduated (fly-fishing) waters. Reset at each cast.
+let castIntervals = [], castLastKeyMs = 0;
+function tickCastRhythm() {
+  if (phase !== "cast") return;
+  const now = Date.now();
+  if (logic.countsTowardTiming(castLastKeyMs, now, MAX_LATENCY_MS)) castIntervals.push(now - castLastKeyMs);
+  castLastKeyMs = now;
+}
 
 // run fn after delay unless the game moved on (profile switched) or picker opened
 function later(fn, delay) {
@@ -562,6 +600,7 @@ function stopSwim() {
 function startCast() {
   phase = "cast"; inputLocked = false;
   target = pick(WORDS).w; typed = 0; lastKeyTime = 0;
+  castIntervals = []; castLastKeyMs = 0;   // A4: fresh fly-cast rhythm window
   tension = 0; renderTension();
   el.dist.textContent = "—";
   el.line.style.transition = "";     // restore the CSS ease for the next cast
@@ -586,7 +625,11 @@ function startWait() {
   burst(400, 195, 5);
   sfxSplash();
   bobberIn();
-  setStatus(pick(PUNS.wait));
+  // A4: on graduated (fly-fishing) waters, an even casting cadence earns a cozy
+  // line — never a penalty, and the Pond casts exactly as before.
+  const flyWater = save.location !== CONFIG.tiers[0].location;
+  const niceCast = flyWater && logic.isEvenCadence(castIntervals, CONFIG.flyCast.minKeys, CONFIG.flyCast.maxCadenceCv);
+  setStatus(niceCast ? pick(PUNS.niceCast) : pick(PUNS.wait));
   later(bite, rand(...CONFIG.bite.delayMsRange) * equippedBait().biteSpeedMult);
 }
 
@@ -610,6 +653,7 @@ function bite() {
   // back to words, so a missing/short data set never blocks a catch.
   const phrasePool = junk ? [] : buildPhrasePool(fish.difficulty);
   reelMode = phrasePool.length ? "phrase" : "words";
+  reelChars = 0; reelActiveMs = 0; reelLastKeyMs = 0;   // A4: fresh WPM window per catch
   if (reelMode === "phrase") {
     target = pick(phrasePool).text; typed = 0; lastKeyTime = 0;
     wordsToLand = logic.wordCount(target);
@@ -677,6 +721,7 @@ function handleSpace() {
   if (phase === "reel" && reelMode === "phrase" && target[typed] === " ") {
     typed++;                     // the word before the space is done
     save.stats.wordsTyped++;
+    tickReelWpm();               // A4: the space is a typed character too
     pullFishOneWord();           // a space always leaves ≥1 word, so this never lands
     renderWord();
   }
@@ -710,8 +755,16 @@ function land(success) {
     // weight roll + personal-best tracking (flavor only, no coin/difficulty effect)
     save.records ??= {};                        // back-compat for pre-records saves
     const { weight, cls } = rollWeight(fish.tier);
-    const newBest = logic.isPersonalBest(save.records[fish.id], weight);
-    if (newBest) save.records[fish.id] = weight;
+    const rec = save.records[fish.id];          // { weight, wpm } | undefined
+    const newBest = logic.isPersonalBest(rec?.weight, weight);
+    // A4: per-species WPM, tracked & shown on Stream+ (phrase) catches only. A
+    // slower-than-best run is never a fail — it just isn't flagged as a best.
+    const wpm = reelMode === "phrase" ? logic.computeWpm(reelChars, reelActiveMs) : 0;
+    const newWpmBest = reelMode === "phrase" && logic.isPersonalBestWpm(rec?.wpm, wpm);
+    save.records[fish.id] = {
+      weight: newBest ? weight : (rec?.weight ?? weight),
+      wpm: newWpmBest ? wpm : (rec?.wpm ?? null),
+    };
     const freshBadges = evaluateBadges();       // marks earned; persistSave below flushes them
     persistSave();                              // the one write per catch
     el.coins.textContent = save.coins;
@@ -724,8 +777,12 @@ function land(success) {
     const pun = isRare ? pick(PUNS.catchRare) : pick(PUNS.catchCommon);
     const sizeNote = ` — ${fish.name} (${weight} lb`
       + (cls === "lunker" ? ", a LUNKER!" : cls === "little" ? ", a little one" : "")
-      + ")" + (newBest && !firstCatch ? " ★ new best!" : "");
-    setStatus((firstCatch ? "NEW! " : "") + pun + sizeNote);
+      + ")";
+    const wpmNote = (reelMode === "phrase" && wpm > 0)
+      ? ` · ${wpm} wpm` + (newWpmBest ? " ★ your best!" : "")
+      : "";
+    const weightBestNote = (newBest && !firstCatch) ? " ★ new best!" : "";
+    setStatus((firstCatch ? "NEW! " : "") + pun + sizeNote + wpmNote + weightBestNote);
     if (collectionOpen) renderCollection();
     const stagesAfter = unlockedStageCount(totalCatches());
     if (stagesAfter > stagesBefore) {
@@ -811,6 +868,7 @@ document.addEventListener("keydown", (e) => {
     : e.key === expected;
   if (hit) {
     recordKey(expected, true);
+    tickReelWpm(); tickCastRhythm();   // A4: self-paced timing (each guards its own phase)
     typed++;
     if (phase === "reel") { ({ tension } = logic.applyTension(tension, true, CONFIG.reel)); renderTension(); }
     renderWord();
@@ -1037,11 +1095,11 @@ function renderCollection() {
       const name = document.createElement("div");
       name.className = "cname";
       name.textContent = count ? f.name : "???";
-      const best = (save.records ?? {})[f.id];
+      const best = (save.records ?? {})[f.id];   // { weight, wpm } (A4)
       const sub = document.createElement("div");
       sub.className = "csub";
       sub.textContent = count
-        ? `${f.species} × ${count}` + (best ? ` · best ${best} lb` : "")
+        ? `${f.species} × ${count}` + (best?.weight ? ` · best ${best.weight} lb` : "")
         : f.tier;
       if (count) cell.title = f.blurb;
       cell.append(shape, name, sub);
@@ -1213,9 +1271,9 @@ $("progress-close").addEventListener("click", () => toggleProgress(false));
 const fishTierOf = id => FISH.find(f => f.id === id)?.tier;
 function hasLegendary() { return Object.keys(save.collection).some(id => fishTierOf(id) === "legendary"); }
 function hasLunker() {
-  return Object.entries(save.records || {}).some(([id, w]) => {
+  return Object.entries(save.records || {}).some(([id, r]) => {
     const tier = fishTierOf(id); if (!tier) return false;
-    return logic.weightClass(CONFIG.size, tier, w) === "lunker";
+    return logic.weightClass(CONFIG.size, tier, r?.weight ?? 0) === "lunker";  // r is { weight, wpm } (A4)
   });
 }
 function ownsAllRods() { return CONFIG.shop.rods.every(r => save.upgrades.owned.rod.includes(r.id)); }
@@ -1390,6 +1448,7 @@ function activateProfile(id) {
   save.upgrades.boat ??= "classic";                  // back-compat: pre-boats saves
   save.upgrades.owned.boat ??= ["classic"];
   recomputeLocations();                              // A0: derive rank/locations, migrates pre-A0 saves
+  migrateRecords();                                  // A4: records number → { weight, wpm }
   localStorage.setItem(ACTIVE_KEY, id);
   save.stats.sessionCount = (save.stats.sessionCount ?? 0) + 1;
   gameGen++;
