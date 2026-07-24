@@ -1025,6 +1025,41 @@ function toggleControls(open) {
   tackleBtn.setAttribute("aria-expanded", String(show));
 }
 
+// ---- Dev/test shortcut (build + playtest phase only) ----------------------
+// Gated by CONFIG.dev.testShortcuts. A clearly-labelled 🧪 tackle-box button
+// that grants every rod (owning the location-unlocking ones opens their spots —
+// AD4) and jumps to the furthest unlocked spot, so a playtest reaches the
+// advanced tiers instantly instead of grinding there. Remove this block, or set
+// CONFIG.dev.testShortcuts = false, before a real release.
+function setupDevTools() {
+  if (!CONFIG.dev?.testShortcuts) return;
+  const btn = document.createElement("button");
+  btn.className = "toggle-btn nav dev";
+  btn.id = "dev-unlock-btn";
+  btn.textContent = "🧪 Test: unlock all spots";
+  btn.addEventListener("click", () => { unlockAllSpotsForTest(); toggleControls(false); });
+  controlsTray.appendChild(btn);
+}
+function unlockAllSpotsForTest() {
+  if (!save) return;
+  for (const r of CONFIG.shop.rods)
+    if (!save.upgrades.owned.rod.includes(r.id)) save.upgrades.owned.rod.push(r.id);
+  save.upgrades.rod = CONFIG.shop.rods.reduce((a, b) => (b.rodLevel > a.rodLevel ? b : a)).id;  // best odds for testing
+  save.coins += CONFIG.dev.testCoins ?? 0;
+  recomputeLocations();
+  // furthest by tier order (robust to rod ordering), not array position
+  const furthest = [...CONFIG.tiers].reverse().find(t => save.unlockedLocations.includes(t.location));
+  save.location = furthest ? furthest.location : save.location;
+  persistSave();
+  el.coins.textContent = save.coins;
+  renderLocations();
+  applyScene();
+  if (shopOpen) renderShop();
+  const here = CONFIG.tiers.find(t => t.location === save.location);
+  setStatus(`🧪 Test: all spots unlocked — now fishing ${here.locationName}.`);
+}
+setupDevTools();
+
 // A0 location switcher: one button per unlocked spot; hidden until the kid has
 // graduated past the Pond (nothing to switch between with only one spot).
 function renderLocations() {

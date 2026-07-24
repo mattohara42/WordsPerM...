@@ -349,6 +349,9 @@ h1 {
 }
 .toggle-btn.active { color: var(--abyss); background: var(--gold); border-color: var(--gold); }
 .toggle-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* dev/test-only affordance (CONFIG.dev.testShortcuts) — dashed so it reads as
+   "not a real player button"; the whole thing goes away when the flag is off */
+.toggle-btn.dev { border-style: dashed; border-color: rgba(240,192,96,0.55); color: var(--gold); }
 
 /* ============ FINGER GUIDE (semi-transparent overlay, pinned to the bottom) ============ */
 #guide-panel {

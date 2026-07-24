@@ -17,6 +17,12 @@ Ideas captured during design/build. Nothing here expands the current milestone.
 - More ponds/locations; weather; real day/night tied to clock.
 - Sound design pass beyond ambient loop.
 
+## Release hygiene
+- **Remove the 🧪 test shortcut before a public release** — the "unlock all spots"
+  tackle-box button is a build/playtest affordance gated by `CONFIG.dev.testShortcuts`.
+  Flip that flag to `false` (or delete the `dev` block in `config.js` + the dev-tools
+  block in `app.js` + `.toggle-btn.dev` in `style.css`).
+
 ## Word pool
 - Stage 1 (home row) is intentionally small (37 words) — keep stage 1 short (few fish to first unlock). Revisit supplements list if kids exhaust it.
 - Difficulty scoring is length-based + rare-letter bump; could later weight by bigram awkwardness.
