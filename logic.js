@@ -137,6 +137,33 @@ export function wordCount(text) {
   return tokenize(text).filter(t => t.type === "word").length;
 }
 
+// Typing speed for a reeled catch (A4), the classic "5 chars = 1 word" WPM over
+// the *active* typing time (idle gaps already excluded by the caller). A cozy
+// number to beat, never a gate — 0 for empty/degenerate input, never throws.
+export function computeWpm(chars, activeMs) {
+  if (chars <= 0 || activeMs <= 0) return 0;
+  return Math.round((chars / 5) / (activeMs / 60000));
+}
+
+// A caught WPM is a new personal best when it beats the stored one (and is a
+// real, positive number). No record yet → any real WPM is a best.
+export function isPersonalBestWpm(previousBestWpm, wpm) {
+  return wpm > 0 && wpm > (previousBestWpm ?? 0);
+}
+
+// Fly-cast rhythm (A4): were these inter-key gaps (ms) an even, steady cadence?
+// Cozy flavor only — needs at least minKeys gaps and a low spread (coefficient
+// of variation = stddev/mean, at or under maxCv). Too few gaps or a stray idle
+// pause → false (we simply withhold praise; there is never a penalty).
+export function isEvenCadence(intervals, minKeys, maxCv) {
+  const xs = intervals.filter(n => n > 0);
+  if (xs.length < minKeys) return false;
+  const mean = xs.reduce((a, b) => a + b, 0) / xs.length;
+  if (mean <= 0) return false;
+  const variance = xs.reduce((a, b) => a + (b - mean) ** 2, 0) / xs.length;
+  return Math.sqrt(variance) / mean <= maxCv;
+}
+
 // The tier to actually serve when a rolled tier has no fish at the current spot
 // (A3): step down the rarity order (hardest→easiest) to the first present tier,
 // then up if still none. e.g. the Stream has no legendary yet, so a legendary

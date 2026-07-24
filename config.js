@@ -61,6 +61,13 @@ export const CONFIG = {
   // in content tagged for any other location.
   capitals: { fromLocations: ["stream", "ocean"] },
 
+  // Fly-cast rhythm + WPM (A4), a Stream+ layer. Both are cozy and self-paced:
+  // an even casting cadence earns a "nice cast" line (never a penalty), and a
+  // per-species personal-best WPM shows on the Stream catch card only. minKeys =
+  // gaps needed before we'll judge cadence; maxCadenceCv = the evenness bar
+  // (stddev/mean); higher = more forgiving.
+  flyCast: { minKeys: 2, maxCadenceCv: 0.5 },
+
   shop: {
     // `unlocksLocation` graduates the profile to a new fishing spot on purchase
     // (A0). Ocean's dedicated deep-sea rod arrives in A6; carbon stays a pure
