@@ -10,40 +10,40 @@ something is the way it is, `git log` and the PR body have it in full.
 | | |
 |---|---|
 | **Active milestone** | **None.** Nothing is blocked on code. The next one is Matt's call, and the shortlist is below. |
-| **Last change** | **The picker can edit a player**, 2026-09-05: "Switch player" (Mommy plays too), a pencil on each cell that renames and re-animals, 103 animals to choose from, and start-this-player-again behind a two-press question. |
-| **Before that** | **Four backlog decisions, shipped together**, 2026-09-05: cloud saves removed, mobile closed with a keyboard notice, the last pixel-era art deleted, and nothing is monospace but the keyboard. |
+| **Last change** | **The Stream stops chirping**, 2026-09-05: a third of the bubbles, an octave down, measured at the master bus before and after. **It wants ears now**, and the risk runs the other way. Same PR carries the locked-letters finding, which Matt reframed and which reproduced with two causes rather than one. |
+| **Before that** | **The picker can edit a player** (#185) and **four backlog decisions** (#184): cloud saves removed, mobile closed with a keyboard notice, the last pixel-era art deleted, and nothing is monospace but the keyboard. |
 | **The game has been played** | By Matt, and shared with friends and family. Verdict: fun, and it looks good. **It is close to release-ready**, and the Firebase question that gated sharing is now answered. |
 | **Living Water** | L1 ✅. **L2 (the actors with no voice: heron, stream leaves, sail) is not started.** |
 | **Tackle & Junk** | T1–T3 ✅. **T4 (junk art) is still waiting on one generation from Matt**, prompt written whole in `ART.md`. |
 | **The refresh** | ✅ R1–R7 all shipped, `BUILD_PLAN_REFRESH.md`, closed 2026-09-04. |
 | **Catch Feel** | ✅ F1–F5 shipped 2026-09-03, `BUILD_PLAN_FEEL.md`. |
 | `origin/main` | clean, nothing unpushed |
-| Tests | 117/117 (`npm test`), plus `tools/ui-check.mjs` for the chrome (needs a served repo + playwright) |
-| Open PRs | **#55 only**: close it unmerged, see below |
+| Tests | 122/122 (`npm test`), plus `tools/ui-check.mjs` for the chrome (needs a served repo + playwright) |
+| Open PRs | none. **#55 is closed unmerged** (2026-09-05), reason on the PR. |
 | Deploys | Netlify is **manual**; merging to `main` does not go live |
 
 ## Start here
 
-**Matt played it, and then shared it.** That is the thing that changed. Six
-findings came out of one session at the Stream and they are the top section of
-`BACKLOG.md`, each with the code checked so the entry carries a number rather
-than an impression. **Two are done** (#183, and the two that needed nobody's
-opinion): the shop's gate rods now read "opens the Stream · luck ★★", and
-holding Shift capitalises the guide's caps. Four are left, in the order I would
-do them:
+**Matt played it, and then shared it.** Six findings came out of one session at
+the Stream and they are the top section of `BACKLOG.md`. **Three are done**: the
+gate rods say which water they open and Shift capitalises the guide's caps
+(#183), and the Stream's chirping is retuned. Three are left:
 
-1. **The Stream chirps too high and too often.** Almost certainly config-only:
-   the `bubble` voice fires every 70–480ms at 700–2200Hz and then ramps up to
-   2.7x. Cheapest real improvement on the list, and it needs ears, not a
-   spectrogram.
-2. **You cannot tell which letters are locked.** Opacity 0.18 and nothing else.
-   **Not yet reproduced in a browser at the Stream**, so confirm the faint style
-   is the whole story before designing a fix. A guide screenshot with Shift held
-   is in #183 if a starting picture helps.
+1. **The Stream needs a listen**, which is the other half of the retune. 218
+   bubbles a minute became 74, an octave lower, and the two numbers to move if
+   it has gone too far under are `everyMs` and the voice `gain` in
+   `CONFIG.audio.ambience.stream`. Before and after recordings and spectrograms
+   are in the PR.
+2. **You cannot tell which letters are locked, except at the Pond.** Matt's
+   correction, and reproducing it at all three spots turned one symptom into
+   two causes: the Stream's water washes the translucent panel out, and the
+   Ocean simply has almost nothing left locked by the time you can afford to
+   fish it. `BACKLOG.md` has the pictures' reading and the fix direction. This
+   is the one I would do next.
 3. **Numbers, symbols and more punctuation.** Its own epic, not a milestone.
-4. **The pixel boot is still on screen.** Already T4, already prompted, still
-   waiting on one generation. The new fact is only that the scene shows it too,
-   so the card's 96px mitigation does not cover it.
+
+**The pixel boot is still on screen** and is not on that list because it is not
+code: it is T4, already prompted, waiting on one generation.
 
 **Mobile is closed, not fixed.** A phone held upright still cannot see the
 fishing (the lure lands at design x=458, which is viewport x 1063 in a 390px
@@ -101,6 +101,9 @@ Still open, and all one-line knobs:
   hemmed between the boat and the word box). The frog on a **lily pad** was cut
   for a measured reason and it is a real loss: every pad in the painting sits
   behind the keyboard.
+- **The retuned Stream wants a listen** (above). `tools/audio-check.mjs --loc
+  stream` writes a webm and a spectrogram if a second opinion helps, but the
+  verdict is an ear's.
 - **`CONFIG.wiggle.wordsRange`** is the one Catch Feel knob no play session has
   reported back on, and it is the number in that epic most likely to be wrong:
   two or three short words measures 3.3s at adult speed and nearer ten at a
@@ -116,32 +119,37 @@ Still open, and all one-line knobs:
 
 Repo housekeeping, unchanged and all still true:
 
-- **Close PR #55 unmerged.** Verified 2026-09-01: it is a strict *subset* of
-  `main` and merging it would delete 3463 lines including the whole refresh
-  epic. Evidence in PR #60. Its branch `claude/graphics-assets-plan-rza791`
-  (a9e4e73) goes with it.
-- **Delete stale branches** (SHAs recorded so it is reversible). Safe:
-  `advanced-game-progression-ejj4yx` (49f2abb) ·
-  `docs-dynamic-intent-generation-p14kbx` (a50a15c) ·
-  `epic-continuation-81tdvp` (69f79ea) ·
-  `gemini-game-asset-prompts-aeopww` (c47e021) · `next-steps-0v0xeg` (98762e7) ·
-  `fish-work-lbjzkz` (53a68f6), all `claude/`-prefixed. Check first:
-  **`g1/layered-rig`** (5e855b5: ⚠️ Matt's own; what survived merged via
-  #42/#43), and two July branches whose commits are **not** ancestors of `main`
-  (pre-squash, so the work looks landed but confirm one):
-  `claude/game-ui-visuals-wt1amv` (73f76c8) · `claude/open-this-3wbx9w`
-  (720ca36).
-- **The GitHub About panel: a paste, not a task.** All three fields are wrong. A
-  session reaches the GitHub API fine but the proxy refuses this write: `403
-  Repository settings writes are not permitted through this proxy`. Values
-  composed, production URL confirmed against Netlify:
+- **Delete nine stale branches: a paste, not a task.** A session can read them
+  but the proxy refuses a delete-ref push (`403`), the same wall as the settings
+  write below. All nine were verified on 2026-09-05 by diffing each against
+  `main`: none holds a file `main` lacks, except one PNG noted below. SHAs are
+  recorded so it stays reversible.
+
+  ```
+  for b in claude/advanced-game-progression-ejj4yx claude/docs-dynamic-intent-generation-p14kbx \
+           claude/epic-continuation-81tdvp claude/gemini-game-asset-prompts-aeopww \
+           claude/next-steps-0v0xeg claude/fish-work-lbjzkz \
+           claude/graphics-assets-plan-rza791 claude/open-this-3wbx9w g1/layered-rig; do
+    git push origin --delete "$b"
+  done
+  ```
+
+  SHAs in that order: 49f2abb · a50a15c · 69f79ea · c47e021 · 98762e7 ·
+  53a68f6 · a9e4e73 (was PR #55) · 720ca36 · 5e855b5 (⚠️ Matt's own; what
+  survived merged via #42/#43). **One judgement call is held back:**
+  `claude/game-ui-visuals-wt1amv` (73f76c8) is the only branch carrying a file
+  `main` does not have, `assets/Gemini_Boat_Purple.png`, a raw delivery for a
+  boat skin that #184 deliberately deleted. Delete it too if that provenance is
+  not wanted; it is the one irreversible bit.
+- **The GitHub About panel is nearly done.** The description, the homepage and
+  the topic edits all landed. What is left is two topics that stopped being true
+  when cloud saves went: `firebase` and `firestore`. Still a paste, because the
+  proxy refuses this write (`403 Repository settings writes are not permitted
+  through this proxy`).
 
   ```
   gh repo edit mattohara42/hook-line-and-sentence \
-    --description "A typing tutorial that's a fishing game. Or is it a fishing game that's a typing tutorial? Cozy painterly keyboard practice for kids: cast, reel and catch your way from single words up to full punctuated sentences. Vanilla JS, no build step." \
-    --homepage "https://hook-line-and-sentence.netlify.app" \
-    --remove-topic pixel-art \
-    --add-topic touch-typing --add-topic typing-practice
+    --remove-topic firebase --remove-topic firestore
   ```
 
 - **Upload the social preview** at Settings → General → Social preview. The

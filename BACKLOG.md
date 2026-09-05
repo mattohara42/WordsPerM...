@@ -9,31 +9,48 @@ which water it opens, and holding Shift capitalises the guide's caps. The other
 four are below. Where I checked the code, the numbers are there; where I did
 not, it says so.
 
-**You cannot tell which letters are locked and which are not.** Locked keys are
-opacity alone (`.key.locked { opacity: 0.18 }`), there is no positive mark on an
-unlocked one, and nothing anywhere on screen says what the current letter set
-is. It shows up at the Stream in particular because the two ladders are
-independent: locations come from rods, letters come from `totalCatches`, and the
-Bamboo Beauty costs 25 coins, so a kid can be standing in the Stream with the
-home row plus `ei` and no idea why the words feel narrow. Worth deciding whether
-the fix is a stronger locked treatment (a slashed or greyed cap rather than a
-near-invisible one), a positive one on the unlocked keys, or a line of text that
-names the set and what earns the next batch. **Not yet reproduced in a browser
-at the Stream**: the reading above is from `app.js` `renderKeyLocks()` and
-`style.css`, so it is possible something worse is happening (a stale render, the
-guide scale) and the faint style is only half the story.
+**You cannot tell which letters are locked, except at the Pond.** Matt's
+correction, 2026-09-05: the Pond *does* show it, and it is the other two spots
+that do not. Reproduced in a browser at all three (`tools/spot-check.mjs`, one
+identical save, so the backdrop is the only variable) and the pictures say the
+one symptom has **two different causes**.
 
-**The Stream chirps too high and far too often.** The numbers agree with the
-ear. `CONFIG.audio.ambience.stream` fires the `bubble` voice every 70 to 480ms,
-which averages roughly four a second, or a couple of hundred a minute, and
-`voiceBubble()` picks a sine at 700 to 2200Hz and then ramps it up by 1.7x to
-2.7x, so the top end lands near 6kHz. The bed underneath it is also the
-brightest of the three spots (`shimmer.hz` 2600, against 760 at the Pond and 700
-in the Ocean). "Hundreds of these a minute is what babbling is" was the design
-note, and it is too literal: a real brook has that many events but almost none of
-them are audible as a discrete pitched ting. Cheapest first pass is data only,
-widen `everyMs`, drop the gain, and pull `f0` and the shimmer down an octave.
-It wants a listen rather than a calculation.
+Locked keys are opacity alone (`.key.locked { opacity: 0.18 }`), with no
+positive mark on an unlocked one and nothing on screen naming the current set.
+Because `#guide` is translucent (`rgba(var(--kb-panel),0.55)`), how well that
+absence reads depends on what is painted behind it, and that is per spot:
+
+- **Pond**: mid-dark water behind the panel, and 17 of 26 keys locked early on.
+  Both work in its favour, which is why it is the one that reads.
+- **Stream**: the brightest water of the three sits behind the board, the panel
+  washes out over it, and 0.18 against 1.0 stops separating. This is a contrast
+  bug and it is visible in the screenshot.
+- **Ocean**: the water is dark enough, so the contrast is not the problem there.
+  The arithmetic is: the Deep Endeavor costs 150 coins, which is 60 to 85
+  catches, which is stage 7 or 8, which is 23 to 26 letters unlocked. There is
+  almost nothing faint left to see. A state you can only find by comparing two
+  keys is not a state you can read.
+
+Both causes point the same way, so one fix probably covers them: give the
+keyboard its own opaque ground rather than borrowing the scene's, and make the
+unlocked set a **positive** mark rather than an absence. A line of text naming
+the set and what earns the next batch would answer the other half (a kid at the
+Stream with the home row plus `ei` has no idea why the words feel narrow), since
+the two ladders are independent: locations come from rods, letters from
+`totalCatches`. Note the constraint before designing: the keyboard's colours are
+frozen as `--kb-*` and deliberately exempt from the art direction, so a fix
+works inside those tokens or it changes the exemption on purpose.
+
+**✅ The Stream chirps too high and far too often (retuned 2026-09-05).** The
+bubble voice fired every 70 to 480ms (measured at the master bus: 218 a minute)
+and swept a sine up to nearly 6kHz, over the brightest bed of the three spots.
+Now a third of the rate, an octave down, shimmer included, and with a wider
+loudness spread so most bubbles stay under the bed. Measured before and after
+with `tools/audio-check.mjs`: 218 events a minute to 74, high band halved, low
+band unmoved, and the spectrogram goes from a field of tall spikes to a haze
+with a few short ones near the bottom. **It still wants ears**, and the risk now
+runs the other way: if the babble has gone too far under, `everyMs` and the
+voice `gain` in `CONFIG.audio.ambience.stream` are the two numbers to move back.
 
 **Pixel-era art is still on screen, not just on the card.** Matt saw it during a
 boot catch, before the card appeared, which means the junk sprite in the scene.
