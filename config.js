@@ -902,13 +902,21 @@ export const CONFIG = {
       },
 
       // Moving water: the bed is brighter and busier, and the babble is not
-      // in the bed at all. It is a few hundred little pitched bubbles a
-      // minute, which is what a brook actually is.
+      // in the bed at all. It is little pitched bubbles on top of it.
+      //
+      // The first pass took "a few hundred a minute is what babbling is" too
+      // literally and played it too high: 218 bubbles a minute (measured, not
+      // estimated), each a sine sweeping up to nearly 6kHz, over the brightest
+      // bed of the three spots. A real brook has that many events and almost
+      // none of them arrive as a discrete pitched ting. So: a third of the
+      // rate, a quieter voice, and the whole thing an octave down, shimmer
+      // included. The Stream is still the brightest bed here (1300 against the
+      // Pond's 760 and the Ocean's 700), which is the part that was right.
       stream: {
         bed: { gain: 0.30, body: { hz: 420, gain: 0.50 },
-               shimmer: { hz: 2600, q: 0.55, gain: 0.14, sweepHz: 0.09, sweepDepth: 500 } },
+               shimmer: { hz: 1300, q: 0.55, gain: 0.12, sweepHz: 0.09, sweepDepth: 260 } },
         voices: [
-          { id: "bubble", everyMs: [70, 480],       gain: 0.34 },
+          { id: "bubble", everyMs: [260, 1400],     gain: 0.20 },
           { id: "plop",   everyMs: [9000, 26000],   gain: 0.22 },
         ],
       },

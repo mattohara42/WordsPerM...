@@ -554,18 +554,25 @@ function voiceDragonfly(gain) {
   }
 }
 
-// one bubble of a brook: a tiny pitch that rises. Hundreds of these a minute
-// are what "babbling" is; the bed alone is just a hiss.
+// one bubble of a brook: a tiny pitch that rises. The gaps between them are a
+// CFG knob; the pitch and the spread are sound design and live here.
+//
+// Retuned after a play session called this "too high and far too often". Three
+// numbers moved and each does a different job: f0 drops an octave so a bubble
+// is water rather than a bell, the rising sweep is shortened from up-to-2.7x
+// (which put the top near 6kHz) to up-to-1.8x, and the loudness spread is
+// widened so most bubbles sit under the bed and only some of them surface. A
+// brook you can count the tings in is not a brook.
 function voiceBubble(gain) {
   const t0 = actx.currentTime;
-  const f0 = 700 + Math.random() * 1500;   // high and glassy: the tinkle is the top of a brook
+  const f0 = 320 + Math.random() * 680;    // 320-1000Hz: the body of the water, not the tinkle
   const dur = 0.05 + Math.random() * 0.05;
   const osc = actx.createOscillator(); osc.type = "sine";
   osc.frequency.setValueAtTime(f0, t0);
-  osc.frequency.exponentialRampToValueAtTime(f0 * (1.7 + Math.random()), t0 + dur);
+  osc.frequency.exponentialRampToValueAtTime(f0 * (1.25 + Math.random() * 0.55), t0 + dur);
   const env = actx.createGain();
   env.gain.setValueAtTime(0.0001, t0);
-  env.gain.linearRampToValueAtTime(gain * (0.4 + Math.random() * 0.6), t0 + 0.006);
+  env.gain.linearRampToValueAtTime(gain * (0.25 + Math.random() * 0.75), t0 + 0.006);
   env.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
   osc.connect(env);
   panTo(env, (Math.random() * 2 - 1) * 0.6, (Math.random() * 2 - 1) * 0.6, dur).connect(voiceGain);
