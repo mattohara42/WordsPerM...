@@ -177,33 +177,66 @@ direction.
 
 ## Open art requests
 
-### T4: the four junk sprites, the last pixel-era art in the game
+### T4: the ten junk sprites, the last pixel-era art in the game
 
 `CONFIG.card.junkPx`'s comment has said it for a while: *"the four junk sprites
 are the last pixel-era art in the game: the refresh never reached them."* This
-is that. `assets/junk-boot.png`, `junk-can.png`, `junk-weed.png` and
-`junk-nugget.png` are overwritten in place, so **T4 needs no config change at
-all**: `CONFIG.junk.items` already names those files.
-
-**One sheet of four, not four generations, and the reason is not the count.**
-Registration does not apply here: unlike an angler's layers, four junk items
-never have to line up with each other. The reason is *consistency of treatment*.
-R6 found that four fish on one canvas came back with the same handling across
-the set, and these four are shown **side by side** in T3's journal shelf, which
-is exactly where four separately-generated styles would show up as four
-different games.
+is that, and **as of 2026-09-07 it is ten sprites rather than four.** Matt added
+six: a toy unicorn, a toy ninja turtle, a puzzle cube, a frisbee, a chocolate
+bar and a superhero mask. The four originals still overwrite in place; the six
+new ones are new files.
 
 **Sizes they have to survive**, because all three are small: **96px** on the
 catch card (`CONFIG.card.junkPx`), **~34px** in the journal shelf, and the
-scene's **62×41** `#fish` box while being reeled. Silhouette is most of the read
+scene's **62x41** `#fish` box while being reeled. Silhouette is most of the read
 at the bottom two.
+
+**Two sheets, 2x2 and 3x2, not one sheet of ten.** Consistency of treatment is
+the whole reason these are sheets at all: T3 puts every piece side by side in
+the journal shelf, which is exactly where separately-generated styles read as
+separate games. One canvas would guarantee that consistency, and ten subjects on
+one canvas is past anything this project has measured (`GEMINI_NOTES.md`: six
+worked three times, the upper bound was never found). A sheet that comes back
+with two subjects touching is a reroll of the whole sheet, so a ten-up failure
+costs both halves at once. Two proven layouts cost less.
+
+**Attach sheet A when asking for sheet B.** Holding a treatment across a set is
+the thing the R7 round trip does best, nine faithful edits out of nine. This is
+not quite that ask (new subjects in a style, rather than one painting returned
+with one change) so it is a hedge and not a guarantee. If B drifts anyway, the
+fallback is to regenerate B alone with A's `[STYLE]` block pasted in verbatim,
+which is what the two prompts already share word for word.
+
+**The toys are sun-bleached, and that is a palette decision rather than a mood
+one.** A puzzle cube is six saturated primaries and a toy unicorn is pink: the
+two most saturated things anyone has asked this generator for, against an
+`ART_DIRECTION.md` that says muted and warm, never saturated or neon. Faded,
+chalky, well-loved plastic answers both at once, and it is the better joke: a
+toy that has been at the bottom of the pond long enough to lose its colour is
+funnier and sadder than a box-fresh one.
+
+**No brand names anywhere in either prompt.** Two of the six are somebody's
+characters, and a shape description gets a better generation than a name does:
+a green toy turtle in a red bandana reads as exactly one thing to a six-year-old
+without the prompt ever saying so, and the same goes for a red and gold
+faceplate. This is the `[THEY WILL BE SEEN SMALL]` rule doing double duty, since
+that block already forbids logos and lettering.
 
 **The nugget is a family easter egg** (see the 2026-08-25 entry at the foot of
 this file) and its joke is the whole point: a dinosaur-shaped chicken nugget,
 with ketchup. Do not let it drift into a real dinosaur.
 
+**Per-item boilerplate check, because a shared frame can contradict the item it
+wraps** (`GEMINI_NOTES.md`, R7's beanie). Two items fight the frame here and
+both are handled in their own block: the chocolate bar's wrapper is the one
+place lettering would arrive uninvited, so it is named as blank foil; and the
+frisbee is the weakest silhouette in the set, because a disc seen flat is a
+circle at 34px, so it is asked for tilted with a bite out of the rim.
+
+#### Sheet A: the four originals
+
 ```
-ART NEEDED: T4, the four junk pulls, on one sheet
+ART NEEDED: T4 sheet A, the four original junk pulls
 Prompt:   [WHAT THIS IS]
           Four separate game sprites of junk: the things you pull up when you
           do NOT catch a fish: to be cut out and used in a children's video
@@ -235,7 +268,9 @@ Prompt:   [WHAT THIS IS]
           top-right, bottom-left, bottom-right. Every object is fully separated
           from every other by a wide band of empty background: nothing touches,
           overlaps or crowds anything else, and nothing touches the edge of the
-          canvas. Each object roughly fills its own quarter.
+          canvas. Each object roughly fills its own quarter. There are NO panel
+          dividers, NO grid lines, NO boxes and NO frames drawn between the
+          objects: the separation is empty magenta and nothing else.
 
           [THEY WILL BE SEEN SMALL]
           Each of these is shown at about 96 pixels, and at about 34 pixels in a
@@ -271,27 +306,175 @@ Prompt:   [WHAT THIS IS]
           text, no watermark, no border, no frame.
 
           [CANVAS]
-          Return the image at 1400 by 1400 pixels. Output as PNG.
-Save as:  assets/Gemini_junk-sheet.jpg (the raw download, whatever extension it
-          arrives with, kept so the cut can be re-run)
-Wired in: nothing to wire, CONFIG.junk.items already names these four files, so
-          T4 is art only. The cut writes over the pixel-era sprites:
-            assets/junk-boot.png · junk-can.png · junk-weed.png · junk-nugget.png
-          THE CUTTER DOES NOT EXIST YET, deliberately. cut-fish.py's four
-          detectors were each written against a real sheet, and the same applies
-          here: a junk cut is simpler than a fish cut (four components keyed off
-          flat magenta, each saved as its own square crop, no peduncle, no tail
-          split), so write it when the sheet lands rather than guessing at it
-          now. Judge the delivery with `python3 tools/palette-check.py` first:
-          these are the first deliveries that gate exists for.
+          Aspect ratio 1:1. The image is 1400 by 1400 pixels. Output as PNG.
+Save as:  assets/Gemini_junk-sheet-a.jpg (the raw download, whatever extension
+          it arrives with, kept so the cut can be re-run)
+Cuts to:  assets/junk-boot.png · junk-can.png · junk-weed.png · junk-nugget.png
+          (overwriting the pixel-era sprites in place)
+```
+
+#### Sheet B: the six new ones
+
+**Generate this second, with sheet A attached.**
+
+```
+ART NEEDED: T4 sheet B, six more junk pulls
+Attach:   the delivered sheet A, as the style reference
+Prompt:   [WHAT THIS IS]
+          Six separate game sprites of lost junk: the things you pull up when
+          you do NOT catch a fish: to be cut out and used in a children's video
+          game. Every one of these is a lost toy or a dropped treat that has
+          been in the water a long time. Each one is a gentle joke, not a piece
+          of grim litter: they are funny to reel in, not sad. This is NOT a
+          poster, NOT a diagram, NOT a product photo. There is NO paper of any
+          kind: no parchment, no aged paper, no paper texture, no canvas
+          texture, no vignette, no border. There are NO captions, NO labels, NO
+          handwriting and NO text anywhere in the image.
+
+          [MATCH THE ATTACHED SHEET]
+          The attached image is the first sheet in this same set. Paint these
+          six in exactly the same treatment: the same brush handling, the same
+          outline weight and colour, the same lighting direction, the same
+          muted warmth, the same amount of surface detail. These six will be
+          shown side by side with those four, so they must look like the same
+          hand painted all ten in one sitting. Do NOT copy any object from the
+          attached sheet: only its treatment.
+
+          [BACKDROP]
+          The six objects float on a solid magenta screen, the way a subject
+          stands in front of a photographer's backdrop. Every part of the image
+          that is not one of the six objects is one completely flat, even
+          magenta #FF00FF, edge to edge and into all four corners: a single flat
+          colour, no gradient, no texture, no vignette, no pattern, no shading.
+          No water, no ground, no shadow cast on the backdrop, no reflection.
+
+          [STYLE]
+          Soft painterly storybook illustration, warm muted color palette,
+          gentle diffused lighting, thin warm brown outlines rather than black,
+          cozy and inviting mood, no harsh shadows, no neon or saturated
+          colours. Soft two-tone shading with blended edges. NOT pixel art, NOT
+          flat vector art with even line weight, NOT thick black cartoon
+          linework, NOT a glossy 3D render, NOT a photograph.
+
+          [THEY HAVE ALL BEEN IN THE WATER A LONG TIME]
+          This is the most important colour instruction in this prompt. Every
+          one of these six is FADED: sun-bleached, chalky, soft and dull, the
+          colour of a plastic toy left outside for years. Where an object would
+          normally be a bright primary colour, paint it as the dusty pastel
+          ghost of that colour instead. Nothing in this image is glossy,
+          nothing is neon, nothing is box-fresh, and nothing is a strong
+          saturated red, blue, yellow or green.
+
+          [LAYOUT]
+          Six different objects on one canvas in two rows of three: top-left,
+          top-centre, top-right along the upper edge, and bottom-left,
+          bottom-centre, bottom-right along the lower edge. Every object is
+          fully separated from every other by a wide band of empty background:
+          nothing touches, overlaps or crowds anything else, and nothing touches
+          the edge of the canvas. Each object roughly fills its own cell. There
+          are NO panel dividers, NO grid lines, NO boxes and NO frames drawn
+          between the objects: the separation is empty magenta and nothing else.
+
+          [THEY WILL BE SEEN SMALL]
+          Each of these is shown at about 96 pixels, and at about 34 pixels in a
+          list. Its overall SHAPE is nearly the whole read at that size, so give
+          each one a clear, simple, instantly recognisable silhouette and keep
+          the surface detail soft and suggested rather than fine. No tiny
+          lettering, no logos, no brand names, no tiny mechanical detail.
+
+          [THE SIX OBJECTS]
+          Top-left is A TOY UNICORN: a small soft plastic toy unicorn standing
+          side-on, facing left, with a plump rounded body, short stubby legs, a
+          single stubby horn on its forehead and a chunky sculpted mane and
+          tail. Faded dusty pink, chalky and sun-bleached, with the mane a
+          slightly paler cream-pink. It is a chunky toddler's toy, not a
+          delicate figurine and not a real animal: soft rounded edges
+          everywhere, no fine hair, no glitter, no sparkle, no rainbow.
+          Top-centre is A TOY NINJA TURTLE: a small chunky plastic action figure
+          of a cartoon turtle standing upright and facing forward, with a domed
+          shell on its back, a pale plated belly, short thick arms and legs, and
+          a strip of cloth tied around its eyes as a mask with the two ends
+          trailing behind its head. Faded dusty green body, faded brick-red
+          mask, soft sun-bleached plastic. Chunky and toy-like with big simple
+          shapes: not detailed, not muscular, not fierce, not a real turtle.
+          Top-right is A PUZZLE CUBE: a small plastic twisting puzzle cube, a
+          cube divided into a three by three grid of little square tiles on each
+          visible face, sitting at a three-quarter angle so two faces and the
+          top are visible and it reads as a solid cube rather than a flat
+          square. It is slightly twisted out of line, one row rotated a few
+          degrees off true. The tiles are FADED chalky pastels: dusty
+          brick-orange, soft ochre, pale sage, chalky slate-blue, warm cream,
+          and worn plastic grey. Scuffed corners.
+          Bottom-left is A FRISBEE: a plastic throwing disc lying at a steep
+          three-quarter tilt so you can see both the curve of its top and the
+          shadowed lip underneath, which is what stops it reading as a flat
+          circle. Faded dusty coral-orange, chalky and sun-bleached, with a
+          shallow bite-shaped chunk missing from one edge and a couple of tooth
+          dents in the rim, the way a dog-chewed disc looks. Slightly warped.
+          Bottom-centre is A CHOCOLATE BAR: a rectangular bar of chocolate lying
+          at a slight angle, its foil-and-paper wrapper torn open and peeled
+          back from one end so about half the bar is exposed. The exposed half
+          is moulded into a row of chunky rectangular squares in warm muted
+          cocoa brown, one corner broken off. THE WRAPPER IS COMPLETELY BLANK:
+          plain dull cream paper over dull silver foil with absolutely no
+          lettering, no printing, no logo, no pattern and no brand of any kind
+          on it. Softened and a bit soggy at the edges.
+          Bottom-right is A SUPERHERO MASK: a hard plastic dress-up face mask
+          seen straight on, an empty helmet faceplate with nobody inside it: a
+          rounded rectangular metal-looking face with a flat mouth slot low
+          down and two narrow angled eye slits that glow a soft pale cream. Its
+          faceplate is faded dusty red with a worn gold-tan panel across the
+          brow and down the cheeks. Chunky moulded toy plastic, scuffed and
+          scratched, with the elastic strap trailing loose from one side. It is
+          an empty mask on its own: no head, no neck, no body, no person.
+
+          [ALSO NOT IN THE PICTURE]
+          No fish, no hook, no line, no rod, no person, no hands, no scenery, no
+          text, no watermark, no border, no frame.
+
+          [CANVAS]
+          Aspect ratio 3:2. The image is 1800 by 1200 pixels. Output as PNG.
+Save as:  assets/Gemini_junk-sheet-b.jpg (the raw download, whatever extension
+          it arrives with, kept so the cut can be re-run)
+Cuts to:  assets/junk-unicorn.png · junk-turtle.png · junk-cube.png ·
+          junk-frisbee.png · junk-chocolate.png · junk-mask.png (all new files)
 ```
 
 **Check before cutting**, in this order, because the cheap ones save the work of
-the later ones: backdrop bled into the subject → reroll · four separate
-components with nothing touching → if two touch, that is a reroll rather than a
-cut problem · each silhouette readable when you shrink it to 34px, which is the
-one that actually decides whether these are better than the pixel sprites ·
-palette per `tools/palette-check.py`.
+the later ones: backdrop bled into the subject → reroll · the right number of
+separate components with nothing touching, four on A and six on B → if two
+touch, that is a reroll rather than a cut problem · each silhouette readable
+when you shrink it to 34px, which is the one that actually decides whether these
+are better than the pixel sprites · sheet B's treatment against sheet A's, since
+the two are shown interleaved · palette per `tools/palette-check.py`, and note
+that the six toys are the first deliveries in the game with any pink or slate in
+them, so read its saturation numbers as context rather than as a verdict.
+
+**T4 is no longer art only, and the six extra items are why.** The original
+four needed no config change at all, because `CONFIG.junk.items` already named
+them. Six new ones cost, all in the same commit as the art rather than before
+it, since an item registered without a PNG is a broken image on the catch card:
+
+- six entries in `CONFIG.junk.items`, ids `unicorn` · `turtle` · `cube` ·
+  `frisbee` · `chocolate` · `mask`;
+- a look at the journal shelf at ten cells rather than four, which is a layout
+  question `tools/ui-check.mjs` is the tool for;
+- **the "Junk Collector" badge gets roughly 3.5x longer to earn**, and that is
+  Matt's call rather than a consequence to absorb quietly. Collecting all of n
+  uniform items takes n·H(n) pulls on average: 8.3 at four items, 29.3 at ten.
+  At `CONFIG.junk.chance` of 0.08 that is about 104 bites against about 366.
+- **`data/puns.json`'s junk pool is the real problem, and it predates this.**
+  Six of its lines are shared but three are about a specific item ("a re-boot",
+  "the sole of the lake", "Dino-mite"), and `punFor("junk")` picks at random, so
+  a boot joke already lands on a can today. Ten items makes that miss 2.5x more
+  often. The fix is per-item pun pools keyed the way the per-spot pools already
+  are, and it is `BACKLOG.md`'s until Matt says otherwise.
+
+**The cutter does not exist yet, deliberately.** `cut-fish.py`'s four detectors
+were each written against a real sheet, and the same applies here: a junk cut is
+simpler than a fish cut (components keyed off flat magenta, each saved as its
+own square crop, no peduncle and no tail split), so write it when the sheets
+land rather than guessing at it now.
 
 
 ### R7: gear, per pose (the wiring landed 2026-09-02; the prompts are below)
