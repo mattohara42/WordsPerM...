@@ -198,6 +198,26 @@ export function punPool(pools, location, moment) {
   return pools?.[location]?.[moment] ?? pools?.shared?.[moment] ?? [];
 }
 
+// The junk pool for ONE item: the generic junk lines plus that item's own.
+//
+// Junk lines used to be one flat list picked at random, so a boot joke landed
+// on a can about half the time, and T4 taking the set from four items to ten
+// would have made it 60%. An item's lines live beside the generic ones as their
+// own moment, `junk:<id>`, rather than nested under `junk`: that keeps every
+// pool in puns.json a plain list of lines (which a data test holds), and it
+// means a spot can override a single item's jokes through exactly the same
+// per-spot chain as every other moment, for free.
+//
+// The two are UNIONED rather than one replacing the other. Replacing would make
+// a two-line item repeat itself constantly; unioning keeps the variety and every
+// line in the result still fits the thing on the hook, which was the whole
+// complaint. An item with no lines of its own is not a bug, it just gets the
+// generic pool, the same way a spot inherits a moment it does not override.
+export function junkPunPool(pools, location, itemId) {
+  return [...punPool(pools, location, "junk"),
+          ...(itemId ? punPool(pools, location, `junk:${itemId}`) : [])];
+}
+
 // Split a reel string into ordered tokens for the token-at-a-time reel (AD2):
 //   { type:"word",  text }: a run of letters; the unit you type
 //   { type:"space", text }: the gap between words; a real (forgiving) key and

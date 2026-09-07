@@ -13,7 +13,7 @@ import {
   rankForProfile, earnsPrestige, speedTestPool, typingAccuracy,
   castArcPoint, lineSagPx, lineControlPoint, stepTug, rotateAboutPivot, easeIn, easeOut,
   easeInOut, reelProgressAtX, revealAt,
-  gearFile, punPool, catchSubtitle, ambienceFor, actorFor, nextVoiceDelayMs,
+  gearFile, punPool, junkPunPool, catchSubtitle, ambienceFor, actorFor, nextVoiceDelayMs,
   looksKeyboardless, cleanProfileName, keepThroughReset
 } from "../logic.js";
 
@@ -369,6 +369,31 @@ test("the catch card's subtitle joins its parts with exactly one separator each"
   // a spot that does not measure speed says nothing about it, rather than 0 wpm
   assert.equal(catchSubtitle(2, "normal", 0), "2 lb");
   assert.equal(catchSubtitle(2, "normal"), "2 lb");
+});
+
+test("junkPunPool unions the generic junk lines with the item's own", () => {
+  const pools = {
+    shared: { junk: ["generic"], "junk:boot": ["a boot joke"] },
+    pond: { "junk:boot": ["a POND boot joke"] },
+    ocean: {},
+  };
+  assert.deepEqual(junkPunPool(pools, "ocean", "boot"), ["generic", "a boot joke"],
+    "an item's lines are ADDED to the generic ones, never a replacement: a two-line item would repeat itself");
+  assert.deepEqual(junkPunPool(pools, "pond", "boot"), ["generic", "a POND boot joke"],
+    "a spot can override one item's jokes through the ordinary per-spot chain");
+  // An item nobody has written a joke for is not a bug: it gets the generic
+  // pool, the same way a spot inherits a moment it does not override. This is
+  // what keeps a half-finished set playable, which is the rule everywhere else
+  // in this game's registries.
+  assert.deepEqual(junkPunPool(pools, "pond", "can"), ["generic"],
+    "an item with no lines of its own still has something to say");
+  // The ways it is reached before there is anything to say. All must be a list,
+  // because app.js picks out of the result and a crash here is a crash on a
+  // catch the kid just landed.
+  assert.deepEqual(junkPunPool(pools, "pond", undefined), ["generic"]);
+  assert.deepEqual(junkPunPool(pools, undefined, "boot"), ["generic", "a boot joke"]);
+  assert.deepEqual(junkPunPool({}, "pond", "boot"), []);
+  assert.deepEqual(junkPunPool(undefined, "pond", "boot"), []);
 });
 
 test("punPool prefers the spot's own lines and falls back to the shared pool", () => {

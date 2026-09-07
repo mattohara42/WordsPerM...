@@ -208,6 +208,15 @@ function punFor(moment) {
   return pool.length ? pick(pool) : "";
 }
 
+// Junk is the one moment that also depends on WHAT is on the hook, so it gets
+// its own resolver: the generic junk lines plus the item's own, unioned. See
+// logic.junkPunPool. Add a joke about a specific piece of junk under
+// "junk:<id>" in puns.json, never here.
+function junkPunFor(itemId) {
+  const pool = logic.junkPunPool(PUN_POOLS, save?.location, itemId);
+  return pool.length ? pick(pool) : "";
+}
+
 // ---- State ----
 let phase = "cast";        // cast | wait | reel | done
 let target = "";
@@ -1585,7 +1594,7 @@ function land(success) {
     const freshJunkBadges = evaluateBadges();
     persistSave();
     sfxEscape();
-    const junkPun = punFor("junk").replace("{it}", junk.name);
+    const junkPun = junkPunFor(junk.id).replace("{it}", junk.name);
     setStatus("");                      // the card carries it now, and announces it
     showCatchCard({ kind: "junk", files: [junk.file], box: CONFIG.card.junkBox,
                     name: junk.name, sub: "not a fish", pun: junkPun });

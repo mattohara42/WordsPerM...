@@ -46,11 +46,10 @@ gate rods say which water they open and Shift capitalises the guide's caps
 shipped whole on 2026-09-07: ten junk pieces (the original four plus a toy
 unicorn, a toy ninja turtle, a puzzle cube, a frisbee, a chocolate bar and a
 superhero mask) from two sheets, first attempt each, cut by the new
-`tools/cut-junk.py`. **Two things in it want Matt rather than code**, and both
-are one-line knobs: "Junk Collector" now takes about 366 bites rather than about
-104 to complete (`CONFIG.junk.chance` is the dial), and the superhero mask came
-back closer to the real thing than the prompt described, which is his call to
-keep or reroll.
+`tools/cut-junk.py`. Both of the calls it raised are made: the rarity stays (Junk
+Collector takes about 366 bites rather than about 104, deliberately) and the
+superhero mask stays as delivered. The junk puns were then fixed properly rather
+than mitigated: **per-item pools**, so a boot joke can no longer land on a can.
 
 **Mobile is closed, not fixed.** A phone held upright still cannot see the
 fishing (the lure lands at design x=458, which is viewport x 1063 in a 390px

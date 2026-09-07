@@ -125,9 +125,15 @@ published in the console by Matt** for that to be true of the live project too.
 - Game voice is dad jokes/puns from per-moment pools, and the pools are
   **per spot** and live in `data/puns.json`: the Ocean does not tell pond
   jokes, and a moment a spot does not override falls back to `shared`. Add a
-  joke to the JSON, never to `app.js`. Two rules are tested: **cast prompts
-  always keep the literal instruction** (at every spot), and every spot can
-  serve every moment `app.js` asks for. A kid can turn the jokes off (the "x"
+  joke to the JSON, never to `app.js`. **Junk is the one moment that also keys
+  on WHAT is on the hook**: a piece's own jokes live beside the generic ones as
+  `junk:<id>`, a sibling moment rather than a nested object, so every pool in
+  the file stays a plain list and a spot can override one item's jokes through
+  the same chain as any other moment. The two are unioned, never replaced
+  (`logic.junkPunPool`). Four rules are tested: **cast prompts always keep the
+  literal instruction** (at every spot), every spot can serve every moment
+  `app.js` asks for, every `junk:` pool names an item that exists, and every
+  junk item has its own joke and nobody else's. A kid can turn the jokes off (the "x"
   on the bubble, or the tackle box), which silences **flavour only**: the cast
   and wiggle prompts are instructions and always show. That is the whole reason
   `setStatus` and `setPun` are two functions.

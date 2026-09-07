@@ -45,17 +45,51 @@
     ],
     "junk": [
       "Aw shucks, you reeled up {it}. Water ya gonna do?",
-      "Just {it}. That's a load of pond scum!",
+      "Only {it}, not every cast's a jackpot. Cast again!",
+      "Look what the water dragged in: {it}.",
+      "You've hooked {it}. Somebody's going to want that back!",
+      "{it}! Not exactly a whopper, is it? Cast again."
+    ],
+    "junk:boot": [
       "You caught {it}?! Talk about a re-boot",
       "{it}. Well, it's the sole of the lake…",
-      "Only {it}, not every cast's a jackpot. Cast again!",
+      "{it}! Put your foot down, that is not a fish."
+    ],
+    "junk:can": [
+      "{it}! Now that is a tin-teresting catch.",
+      "You reeled up {it}. Can you believe it?"
+    ],
+    "junk:weed": [
+      "Just {it}. That's a load of pond scum!",
+      "{it}! Weed better throw that one back."
+    ],
+    "junk:nugget": [
       "{it}! Dino-mite catch… for a lunchbox. Not so much a lake.",
-      "Look what the lake dragged in: {it}.",
-      "You've hooked {it}. Somebody's going to want that back!",
-      "Reeled in {it}. Something's fishy round here, and it isn't this.",
-      "{it}?! I'm not sure that counts. Have another go!",
-      "It's {it}. The lake giveth, and the lake giveth some odd stuff.",
-      "{it}! Not exactly a whopper, is it? Cast again."
+      "You reeled up {it}. A properly Jurassic snack."
+    ],
+    "junk:unicorn": [
+      "{it}! One in a million. Well, one in a pond.",
+      "You caught {it}. Somebody is going to be very glad to see that."
+    ],
+    "junk:turtle": [
+      "{it}! Turtle-y not a fish.",
+      "You reeled up {it}. He has been down there for shell-ever."
+    ],
+    "junk:cube": [
+      "{it}! Well, that is a puzzle.",
+      "You caught {it}. Still not solved, mind you."
+    ],
+    "junk:frisbee": [
+      "{it}! Somebody's dog is going to be furious.",
+      "You reeled up {it}. That is one way to play fetch."
+    ],
+    "junk:chocolate": [
+      "{it}! Soggy, but it is the thought that counts.",
+      "You caught {it}. A choc-o-lot wetter than it went in."
+    ],
+    "junk:mask": [
+      "{it}! Some hero left that behind.",
+      "You reeled up {it}. Suits you, that does."
     ]
   },
 
