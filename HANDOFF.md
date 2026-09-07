@@ -10,15 +10,16 @@ something is the way it is, `git log` and the PR body have it in full.
 | | |
 |---|---|
 | **Active milestone** | **None.** Nothing is blocked on code. The next one is Matt's call, and the shortlist is below. |
-| **Last change** | **T4, and the art is finished**, 2026-09-07: ten junk pieces from two Gemini sheets (#188, #189), then **per-item junk jokes** so a boot joke stops landing on a can (#190). No pixel-era art is left in the game. |
-| **Before that** | **The Stream stops chirping** (#186), which **still wants ears** · the picker can edit a player (#185) · four backlog decisions (#184). |
+| **Last change** | **The keyboard says which letters are locked**, 2026-09-07: six keys across two spots were rendering *brighter* than the live ones, and the panel has its own ground now. |
+| **Before that** | **T4, and the art is finished**: ten junk pieces from two Gemini sheets (#188, #189), then **per-item junk jokes** (#190). No pixel-era art is left in the game. |
+| **Older** | **The Stream stops chirping** (#186), which **still wants ears** · the picker can edit a player (#185) · four backlog decisions (#184). |
 | **The game has been played** | By Matt, shared with friends and family, and **the kids love it and said thank you** (2026-09-07). Verdict: fun, and it looks good. **It is close to release-ready**, and the Firebase question that gated sharing is now answered. |
 | **Living Water** | L1 ✅. **L2 (the actors with no voice: heron, stream leaves, sail) is not started.** |
 | **Tackle & Junk** | ✅ **T1–T4 all shipped, epic complete 2026-09-07.** T4 grew from four junk pieces to ten and took two sheets, first attempt each. No pixel-era art is left in the game. |
 | **The refresh** | ✅ R1–R7 all shipped, `BUILD_PLAN_REFRESH.md`, closed 2026-09-04. |
 | **Catch Feel** | ✅ F1–F5 shipped 2026-09-03, `BUILD_PLAN_FEEL.md`. |
 | `origin/main` | clean, nothing unpushed |
-| Tests | 125/125 (`npm test`), plus `tools/ui-check.mjs` for the chrome (needs a served repo + playwright) |
+| Tests | 126/126 (`npm test`), plus `tools/ui-check.mjs` for the chrome (needs a served repo + playwright) |
 | Open PRs | none. **#55 is closed unmerged** (2026-09-05), reason on the PR. |
 | Deploys | Netlify is **manual**; merging to `main` does not go live |
 
@@ -34,12 +35,14 @@ gate rods say which water they open and Shift capitalises the guide's caps
    it has gone too far under are `everyMs` and the voice `gain` in
    `CONFIG.audio.ambience.stream`. Before and after recordings and spectrograms
    are in the PR.
-2. **You cannot tell which letters are locked, except at the Pond.** Matt's
-   correction, and reproducing it at all three spots turned one symptom into
-   two causes: the Stream's water washes the translucent panel out, and the
-   Ocean simply has almost nothing left locked by the time you can afford to
-   fish it. `BACKLOG.md` has the pictures' reading and the fix direction. This
-   is the one I would do next.
+2. **You cannot tell which letters are locked** is **half fixed** (2026-09-07).
+   Measuring it per key found the cause was worse than reported: six locked keys
+   across the Stream and the Ocean rendered *brighter* than the live ones,
+   because the panel was 55% opaque and the water behind it is brighter than a
+   key's own fill. The panel has its own ground now (0.88, derived, with a test
+   holding the floor). **What is left is the other half and it is a feature:**
+   nothing names the live letter set or says what earns the next one, which is
+   what a kid at the Stream actually needs. `BACKLOG.md` has it.
 3. **Numbers, symbols and more punctuation.** Its own epic, not a milestone.
 
 **The art is finished.** T4 shipped whole on 2026-09-07: ten junk pieces (the
