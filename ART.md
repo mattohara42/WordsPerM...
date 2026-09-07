@@ -179,6 +179,14 @@ direction.
 
 ### T4: the ten junk sprites, the last pixel-era art in the game
 
+**Sheet A landed and is cut, 2026-09-07, first attempt.** 1024x1024 at a ratio
+of exactly 1.000 against an asked 1:1, border stdev 1.0/2.4/1.7, **0 px of
+residual key inside the subjects**, four subjects at 62k-78k px with the
+narrowest band between any two of them 76px, and every one of them through
+`palette-check.py` at 0.000% eroded black with no pure black pixel anywhere:
+the pixel-era sprites it replaces ran 14% to 23%. `tools/cut-junk.py` exists
+now and was written against it. **Sheet B is still outstanding.**
+
 `CONFIG.card.junkPx`'s comment has said it for a while: *"the four junk sprites
 are the last pixel-era art in the game: the refresh never reached them."* This
 is that, and **as of 2026-09-07 it is ten sprites rather than four.** Matt added
@@ -470,11 +478,36 @@ it, since an item registered without a PNG is a broken image on the catch card:
   often. The fix is per-item pun pools keyed the way the per-spot pools already
   are, and it is `BACKLOG.md`'s until Matt says otherwise.
 
-**The cutter does not exist yet, deliberately.** `cut-fish.py`'s four detectors
-were each written against a real sheet, and the same applies here: a junk cut is
-simpler than a fish cut (components keyed off flat magenta, each saved as its
-own square crop, no peduncle and no tail split), so write it when the sheets
-land rather than guessing at it now.
+**The cutter is `tools/cut-junk.py`,** written against sheet A the moment it
+landed rather than guessed at beforehand, which is what the deferral was for.
+It is `cut-fish.py`'s opening move with the fish half removed: no peduncle, no
+tail split, no per-species length. Two things it does that `cut-fish.py` does
+not, both paid for by the delivery:
+
+- **Crops are tight, not square.** All three places the game draws junk (the
+  catch card, the journal shelf, the `#fish` box in the scene) use `background:
+  center / contain`, which fits any aspect and centres it, and every sprite
+  being overwritten is tight already. The square is `CONFIG.card.junkBox`'s
+  BOX, never the sprite.
+- **Strays are attached, not dropped.** `cut-fish.py` drops everything below
+  the N largest components because on its sheets they were captions. The weed
+  arrived with two of its asked-for leaves detached from the clump, 597px and
+  415px against the clump's 69,299, so dropping them would lose art the prompt
+  asked for. A stray joins the nearest subject when it is within **half the
+  narrowest gap between any two subjects on that sheet**, which is the largest
+  cap under which no stray can belong to two subjects at once: unambiguous by
+  construction, and it rescales itself for sheet B instead of inheriting sheet
+  A's spacing. On sheet A that cap is 38px, both strays measure 0.0px (they sit
+  inside the weed's own bounding box) and the next nearest subject is 166px and
+  320px away. Past the cap the tool stops rather than dropping anything
+  quietly: there, that can only be a caption or a subject the layout did not
+  name.
+
+**It also prints a 34px contact strip and tells you to look at it**, because
+that is the check that decides this milestone and no assertion reaches it. It
+earned that on its first run: the strays were grouped correctly and the line
+reporting them named the wrong subject, since `seeds` is sorted by size and the
+layout is in reading order. The picture was right and the sentence was wrong.
 
 
 ### R7: gear, per pose (the wiring landed 2026-09-02; the prompts are below)

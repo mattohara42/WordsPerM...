@@ -14,7 +14,7 @@ something is the way it is, `git log` and the PR body have it in full.
 | **Before that** | **The picker can edit a player** (#185) and **four backlog decisions** (#184): cloud saves removed, mobile closed with a keyboard notice, the last pixel-era art deleted, and nothing is monospace but the keyboard. |
 | **The game has been played** | By Matt, and shared with friends and family. Verdict: fun, and it looks good. **It is close to release-ready**, and the Firebase question that gated sharing is now answered. |
 | **Living Water** | L1 ✅. **L2 (the actors with no voice: heron, stream leaves, sail) is not started.** |
-| **Tackle & Junk** | T1–T3 ✅. **T4 grew from four junk pieces to ten on 2026-09-07** and is waiting on **two** generations from Matt, both prompts written whole in `ART.md`. |
+| **Tackle & Junk** | T1–T3 ✅. **T4 grew from four junk pieces to ten on 2026-09-07. Sheet A is in, cut and on screen; sheet B is the one thing outstanding**, prompt written whole in `ART.md`. |
 | **The refresh** | ✅ R1–R7 all shipped, `BUILD_PLAN_REFRESH.md`, closed 2026-09-04. |
 | **Catch Feel** | ✅ F1–F5 shipped 2026-09-03, `BUILD_PLAN_FEEL.md`. |
 | `origin/main` | clean, nothing unpushed |
@@ -42,13 +42,15 @@ gate rods say which water they open and Shift capitalises the guide's caps
    is the one I would do next.
 3. **Numbers, symbols and more punctuation.** Its own epic, not a milestone.
 
-**The pixel boot is still on screen** and is not on that list because it is not
-code: it is T4, waiting on two generations. Matt added six junk pieces to it on
-2026-09-07 (a toy unicorn, a toy ninja turtle, a puzzle cube, a frisbee, a
-chocolate bar, a superhero mask), which also makes T4 the first junk milestone
-with a config half: `BUILD_PLAN_TACKLE.md` has what the six cost, and the
-"Junk Collector" badge stretching from about 104 bites to about 366 is the one
-decision in it that is Matt's rather than a consequence.
+**The pixel boot is gone**, along with the can, the weed and the nugget: sheet A
+landed and cut on 2026-09-07, first attempt, and the four are on screen at both
+sizes that matter. **What is left of T4 is sheet B**, the six pieces Matt added
+the same day (a toy unicorn, a toy ninja turtle, a puzzle cube, a frisbee, a
+chocolate bar, a superhero mask). Those six are also what makes T4 the first
+junk milestone with a config half, and it lands with the art rather than before
+it: `BUILD_PLAN_TACKLE.md` has what they cost. One decision in it is Matt's
+rather than a consequence to absorb, and it is that "Junk Collector" stretches
+from about 104 bites to about 366.
 
 **Mobile is closed, not fixed.** A phone held upright still cannot see the
 fishing (the lure lands at design x=458, which is viewport x 1063 in a 390px

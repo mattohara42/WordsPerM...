@@ -97,7 +97,7 @@ that is what it sits under. A piece never pulled stays **locked** rather than
 showing a dimmed sprite: the collection teases fish with a silhouette because
 the shape is the reward, and a boot's shape is not: the surprise is.
 
-## T4: junk art (specified 2026-09-04; respecified 2026-09-07; waiting on two generations)
+## T4: junk art (specified 2026-09-04; respecified 2026-09-07; sheet A landed 2026-09-07)
 
 **Done when:** the junk sprites are painted in the new direction and the game
 draws them.
@@ -107,6 +107,13 @@ a toy ninja turtle, a puzzle cube, a frisbee, a chocolate bar and a superhero
 mask. The four originals overwrite `junk-boot`, `junk-can`, `junk-weed` and
 `junk-nugget` in place; the six new ones are new files and new
 `CONFIG.junk.items` entries.
+
+**Sheet A is in, cut and on screen.** Four subjects, first attempt, 0 px of key
+bled into them, 0.000% eroded black where the sprites they replace ran 14% to
+23%. Verified past the startup modal at both sizes that matter: the journal
+shelf at 34px with three kinds found and one still locked, and the catch card at
+96px. 122/122 and `ui-check.mjs` clean across twelve viewports. **Sheet B is
+what T4 is now waiting on**, and the config half lands with it.
 
 **Both prompts are written out whole in `ART.md`, and there are two of them:**
 sheet A is the four originals in a 2x2, sheet B is the six new ones in a 3x2
@@ -128,10 +135,11 @@ is that `data/puns.json`'s junk pool mixes shared lines with item-specific ones
 and picks at random, so a boot joke lands on a can today and will land on a
 puzzle cube ten times as often. That is `BACKLOG.md`'s, not this milestone's.
 
-The cutter does **not** exist yet, deliberately: `cut-fish.py`'s four detectors
-were each written against a real sheet, and a junk cut is simpler than a fish
-cut (components keyed off flat magenta, each saved as its own square crop, no
-peduncle and no tail split). Write it when the sheets land.
+The cutter is `tools/cut-junk.py`, written against sheet A on the day it landed,
+which is what deferring it was for. `ART.md` has the two places it deliberately
+disagrees with `cut-fish.py`: tight crops rather than square ones, and strays
+attached to their subject rather than dropped, under a cap derived from each
+sheet's own spacing rather than picked.
 
 `tools/palette-check.py` is the gate, and these are the first deliveries that
 gate exists for. The check that actually decides the milestone is cruder than
