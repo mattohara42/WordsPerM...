@@ -9,37 +9,28 @@ which water it opens, and holding Shift capitalises the guide's caps. The other
 four are below. Where I checked the code, the numbers are there; where I did
 not, it says so.
 
-**You cannot tell which letters are locked, except at the Pond.** Matt's
-correction, 2026-09-05: the Pond *does* show it, and it is the other two spots
-that do not. Reproduced in a browser at all three (`tools/spot-check.mjs`, one
-identical save, so the backdrop is the only variable) and the pictures say the
-one symptom has **two different causes**.
+**✅ Half fixed: the keyboard's ground is its own now (2026-09-07).** The panel
+was 55% opaque, so `.key.locked`'s opacity showed the water through it, and at
+two spots out of three the water is brighter than a live key's own fill: **six
+keys rendered BRIGHTER than the unlocked ones** (the Stream's `y p q w`, the
+Ocean's `z q`). A wrong signal, not a weak one, which is more than the original
+finding claimed. Measured per key from the rendered pixels at all three spots
+and taken to 0.88, where the worst key anywhere sits +9.3 against the +2.8 the
+Pond reads fine on today. A data test holds the 0.80 floor. Numbers and the full
+table are in `style.css` beside the value.
 
-Locked keys are opacity alone (`.key.locked { opacity: 0.18 }`), with no
-positive mark on an unlocked one and nothing on screen naming the current set.
-Because `#guide` is translucent (`rgba(var(--kb-panel),0.55)`), how well that
-absence reads depends on what is painted behind it, and that is per spot:
-
-- **Pond**: mid-dark water behind the panel, and 17 of 26 keys locked early on.
-  Both work in its favour, which is why it is the one that reads.
-- **Stream**: the brightest water of the three sits behind the board, the panel
-  washes out over it, and 0.18 against 1.0 stops separating. This is a contrast
-  bug and it is visible in the screenshot.
-- **Ocean**: the water is dark enough, so the contrast is not the problem there.
-  The arithmetic is: the Deep Endeavor costs 150 coins, which is 60 to 85
-  catches, which is stage 7 or 8, which is 23 to 26 letters unlocked. There is
-  almost nothing faint left to see. A state you can only find by comparing two
-  keys is not a state you can read.
-
-Both causes point the same way, so one fix probably covers them: give the
-keyboard its own opaque ground rather than borrowing the scene's, and make the
-unlocked set a **positive** mark rather than an absence. A line of text naming
-the set and what earns the next batch would answer the other half (a kid at the
-Stream with the home row plus `ei` has no idea why the words feel narrow), since
-the two ladders are independent: locations come from rods, letters from
-`totalCatches`. Note the constraint before designing: the keyboard's colours are
-frozen as `--kb-*` and deliberately exempt from the art direction, so a fix
-works inside those tokens or it changes the exemption on purpose.
+**Still open: nothing on screen names the letter set or what earns the next
+one.** A kid at the Stream with the home row plus `ei` has no idea why the words
+feel narrow, and no contrast fix reaches that: it is missing information rather
+than unreadable information. The two ladders are independent, which is the
+confusing part, locations come from rods and letters from `totalCatches`, so a
+kid can reach new water and find the words no wider. A line inside the guide
+panel naming the live letters and the catches to the next batch would answer it.
+The open question is placement, since the panel is already the busiest thing on
+screen and `ui-check.mjs` guards what may sit there. Note the constraint before
+designing: the keyboard's colours are frozen as `--kb-*` and deliberately exempt
+from the art direction, so a fix works inside those tokens or it changes the
+exemption on purpose.
 
 **✅ The Stream chirps too high and far too often (retuned 2026-09-05).** The
 bubble voice fired every 70 to 480ms (measured at the master bus: 218 a minute)

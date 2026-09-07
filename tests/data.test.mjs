@@ -724,6 +724,24 @@ test("CONFIG.anim's timings and curve numbers are sane", () => {
   assert.ok(a.tug.jitter >= 0 && a.tug.jitter < 1, "jitter is a fraction of the impulse");
 });
 
+// The finger guide's panel is translucent, so whatever is painted behind it
+// decides whether a locked key reads as locked. At 0.55 it did not: six keys
+// across the Stream and the Ocean rendered BRIGHTER than the live ones, which
+// is a wrong signal rather than a weak one. 0.80 is the measured point where
+// that inversion disappears at every spot (style.css carries the table).
+//
+// This cannot assert the rendering, only the input to it, and that is the point:
+// the number is the kind of thing someone lowers by eye months from now to let
+// more water through, with no way to see what it broke. The floor is the
+// measurement, not the shipped value, so tuning between 0.80 and 1.0 stays free.
+test("the finger guide's panel stays opaque enough to read a locked key", () => {
+  const m = CSS.match(/#guide-panel\s*\{[^}]*background:\s*rgba\(var\(--kb-panel\)\s*,\s*([\d.]+)\s*\)/);
+  assert.ok(m, "#guide-panel no longer sets its background from --kb-panel: check this test still describes the code");
+  assert.ok(parseFloat(m[1]) >= 0.8,
+    `#guide-panel is ${m[1]} opaque; below 0.80 the scene shows through a locked key `
+    + "and at two spots out of three it renders BRIGHTER than an unlocked one");
+});
+
 // R2 (ART_DIRECTION.md): two rules that are easy to break by habit months from
 // now, and invisible in a diff. Both are cheap to check mechanically, so they
 // are checked rather than trusted.

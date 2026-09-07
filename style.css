@@ -1032,9 +1032,34 @@ h1 {
    best part of the game and stays exactly as it is). Everything in this block
    therefore uses the frozen --kb-* tokens and never the scene palette, so a
    future palette change cannot reach it by accident. */
+/* The panel's ALPHA is the whole reason a kid could not tell which letters were
+   locked, and it is a measurement rather than a taste call. `.key.locked` is
+   opacity alone, so a locked key shows whatever is painted behind the panel. At
+   0.55 that is mostly the water, and the water is brighter than a live key's own
+   --kb-key fill at two spots out of three: SIX locked keys rendered BRIGHTER
+   than the unlocked ones (the Stream's y p q w, the Ocean's z q). Not a faint
+   signal, an inverted one.
+
+   Measured by sampling the rendered pixels of every letter key at all three
+   spots, as the gap in luminance between a live key's cell and a locked one:
+
+     alpha   pond          stream            ocean
+     0.55    +2.8 worst    -8.3, 4 inverted  -15.4, 2 inverted   <- shipped
+     0.80    +14.5         +8.3              +3.6, none
+     0.88    +17.6         +12.9             +9.9, none          <- here
+     1.00    +23.6         +20.9             +18.9, none
+
+   The floor is the Pond's +2.8, because the Pond is the spot that reads today.
+   0.80 is the least that removes the inversion everywhere; 0.88 clears the
+   working floor by 3.5x at the WORST spot, which leaves room for a background
+   that has not been painted yet, and still lets a little water through so the
+   board sits in the scene rather than on it. A data test holds the floor.
+
+   This is inside the R2 exemption, not a break of it: --kb-panel is unchanged
+   and no key colour moved. Only how much scene is allowed to leak through. */
 #guide-panel {
   position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 5;
-  background: rgba(var(--kb-panel),0.55); border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(var(--kb-panel),0.88); border: 1px solid rgba(255,255,255,0.1);
   border-radius: 14px; padding: 10px; max-width: calc(100vw - 20px); overflow: hidden;
   backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
 }
