@@ -1,12 +1,44 @@
 # The save file: Hook, Line and Sentence
 
 **Cloud saves are gone as of 2026-09-05.** The game writes to localStorage and
-nothing else: no Firebase config, no SDK, no sign-in, no network write. Why is
-in `BACKLOG.md` -> *Release hygiene* and in the commit that did it; the short
-version is that sync rode on a Firebase project shared with Family Hub whose
-rules authorised any Google account on earth, and the game's URL had been
-shared. **`firestore.rules` now denies everything, and publishing it in the
-console is a step only Matt can do.**
+nothing else: no Firebase config, no SDK, no sign-in, no network write. Verified
+empirically on 2026-09-07, not just by reading the code: a full session in a
+browser (load, create a player, play a catch, open every panel) makes 24
+requests, all to the game's own origin, and **not one of them is a non-GET**.
+Nothing off-origin is referenced by `index.html` at all.
+
+## Correction, 2026-09-07: the rules file was wrong, and it is deleted
+
+`firestore.rules` used to live here, holding a `match /typingFishing/{profileId}
+{ allow read, write: if false; }` block, with a header saying the collection was
+open to any Google account until Matt published it. **Both halves of that were
+wrong**, and the file is gone rather than fixed, because a publishable-looking
+rules file that does nothing is worse than no file.
+
+**The block could not have closed anything.** Firestore `allow` rules are
+ADDITIVE and there is no `deny`: a request is permitted if ANY matching rule
+allows it, and a narrower `match` does not override a broader one. Family Hub's
+whole ruleset is a single recursive `match /{document=**}`, which matches
+`typingFishing/{id}` along with everything else, so a sibling block denying that
+path sits beside it doing nothing. It reads like a lock and is decorative.
+
+**And the exposure it described is not what Family Hub's rules do.** The rules
+checked into `mattohara42/family-hub` gate on an email allowlist holding one
+address, not on `request.auth != null`. Against those rules the collection is
+reachable by Matt and by nobody else, which is a different situation from the
+one this repo has been describing since 2026-09-05.
+
+**Two caveats, both real.** The live ruleset in the Firebase console is the
+authority and has never been read from a session here: if it is still an older
+`request.auth != null` version, the original exposure stands, and the `if false`
+block would not have closed that either, for the same additive reason. And a
+rules file checked into a repo is not proof of what is deployed.
+
+**If the collection is to be closed, delete the collection.** The game never
+reads it again, so there is nothing left to protect and the documents cost
+nothing to remove. The alternative is carving `typingFishing` out of Family
+Hub's recursive match, which means breaking up a working wildcard in an app this
+repo does not own, for a collection nobody uses.
 
 This file survives as **the shape of the save document**, which did not change:
 the localStorage mirror always was the Firestore document, byte for byte, so

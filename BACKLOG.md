@@ -255,7 +255,8 @@ flip) · switching spots mid-cast left the old spot's bobber, line and armed bit
 running, so a Pond cast landed an Ocean fight (`gameGen++` and `startCast()`,
 and the "Now fishing the Ocean." status went with it) · the em-dash test catches
 the HTML entity now, and the three that were hiding behind it in `index.html`
-are gone · `firestore.rules` bounds `junk` · opening the journal no longer
+are gone · `firestore.rules` bounds `junk` (void: that file was deleted on
+2026-09-07, see `FIRESTORE.md`) · opening the journal no longer
 spends a Firestore write · `renderProgress()` uses `logic.overallAccuracy` ·
 `bobberRippleTimer` goes through `later()`, which hands back its timer now ·
 Escape closes the topmost overlay rather than all of them at once · the eaten
@@ -337,11 +338,16 @@ them, 96px and 34px, against the originals: no visible difference.
 - **✅ The Firebase blast-radius question is answered: no Firebase (2026-09-05).**
   Matt's call was the last of the options this entry listed, and the only one
   that closes the hole rather than narrowing it. Cloud saves are removed whole:
-  no config, no SDK import, no sign-in, no write path, and `firestore.rules`
-  denies everything. The cost is cross-device sync, which was all it bought.
-  **One step is still Matt's and code cannot do it: publish the new rules in
-  the Firebase console.** Until that happens the live project still accepts
-  writes from any Google account, whatever the game does.
+  no config, no SDK import, no sign-in, no write path. The cost is cross-device
+  sync, which was all it bought, and the no-network claim was checked in a
+  browser on 2026-09-07: 24 requests in a full session, all same-origin, not one
+  of them a non-GET. **The rules half of this entry was wrong and is corrected
+  in `FIRESTORE.md`**: the `firestore.rules` it promised could not have closed
+  anything (Firestore allows are additive, there is no deny, and Family Hub's
+  recursive match already covers the collection), and Family Hub's checked-in
+  rules are an email allowlist rather than the `request.auth != null` this
+  entry assumed. The file is deleted. If the collection is wanted closed, delete
+  the collection.
 - **No analytics, no crash reporting, no third-party scripts.** Worth keeping
   that way: it's most of what makes this safe to hand to another family.
 
