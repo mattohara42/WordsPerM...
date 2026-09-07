@@ -8,7 +8,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { CONFIG, isDevHost } from "../config.js";
-import { wordCount, buildReelPool } from "../logic.js";
+import { wordCount, buildReelPool, junkPunPool } from "../logic.js";
 
 const load = p => JSON.parse(readFileSync(new URL(p, import.meta.url), "utf8"));
 const words = load("../data/words.json");
@@ -268,12 +268,44 @@ test("every cast line, at every spot, keeps the literal instruction", () => {
   }
 });
 
+// Every junk pool, generic and per-item. The per-item ones are "junk:<id>"
+// siblings rather than a nested object on purpose: it keeps every pool in this
+// file a plain list (the test above), and it means a spot overrides one item's
+// jokes through the same chain as any other moment. See logic.junkPunPool.
+const junkKeys = pools => Object.keys(pools).filter(k => k === "junk" || k.startsWith("junk:"));
+
 test("junk lines all carry the {it} the item name is spliced into", () => {
-  for (const [spot, pools] of punPools) {
-    const lines = pools.junk;
-    if (!lines) continue;
-    assert.equal(offenders(lines, l => !l.includes("{it}")), "", `${spot}: a junk line with no {it}`);
-  }
+  for (const [spot, pools] of punPools)
+    for (const key of junkKeys(pools))
+      assert.equal(offenders(pools[key], l => !l.includes("{it}")), "",
+        `${spot}.${key}: a junk line with no {it}`);
+});
+
+// The typo class this whole file exists for: "junk:nuget" is not an error
+// anywhere, it just silently means the nugget never tells its own joke and
+// nothing on screen looks wrong. Same shape as the fish/gear/pose registries.
+test("every junk: pool names a junk item that actually exists", () => {
+  const ids = new Set(CONFIG.junk.items.map(i => i.id));
+  for (const [spot, pools] of punPools)
+    for (const key of junkKeys(pools).filter(k => k !== "junk"))
+      assert.ok(ids.has(key.slice(5)),
+        `${spot}.${key} names junk that is not in CONFIG.junk.items`);
+});
+
+// T4 took junk from four items to ten, and the reason per-item pools exist at
+// all is that a boot joke was landing on a can. So: every item, at every spot,
+// has to resolve to something, and none of what it resolves to may be another
+// item's joke.
+test("every junk item, at every spot, has its own joke and nobody else's", () => {
+  for (const spot of PUN_SPOTS)
+    for (const item of CONFIG.junk.items) {
+      const pool = junkPunPool(puns, spot, item.id);
+      assert.ok(pool.length, `${spot}: "${item.id}" has no junk lines at all`);
+      const others = CONFIG.junk.items.filter(i => i.id !== item.id).map(i => i.id);
+      const own = new Set(puns[spot]?.[`junk:${item.id}`] ?? puns.shared[`junk:${item.id}`] ?? []);
+      const strays = others.flatMap(o => (puns.shared[`junk:${o}`] ?? []).filter(l => own.has(l)));
+      assert.deepEqual(strays, [], `${spot}: "${item.id}" shares a line with another item`);
+    }
 });
 
 test("fish.json is a non-empty array of well-formed entries", () => {
