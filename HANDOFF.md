@@ -10,9 +10,10 @@ something is the way it is, `git log` and the PR body have it in full.
 | | |
 |---|---|
 | **Active milestone** | **None.** Nothing is blocked on code. The next one is Matt's call, and the shortlist is below. |
-| **Last change** | **The keyboard says which letters are locked**, 2026-09-07: six keys across two spots were rendering *brighter* than the live ones, and the panel has its own ground now. |
-| **Before that** | **T4, and the art is finished**: ten junk pieces from two Gemini sheets (#188, #189), then **per-item junk jokes** (#190). No pixel-era art is left in the game. |
-| **Older** | **The Stream stops chirping** (#186), which **still wants ears** · the picker can edit a player (#185) · four backlog decisions (#184). |
+| **Last change** | **The Firestore story was wrong and is corrected**, 2026-09-07: the rules file could not have closed anything and the exposure it described was not what Family Hub's rules do. File deleted, `FIRESTORE.md` owns it. |
+| **Before that** | **The keyboard says which letters are locked**: six keys across two spots were rendering *brighter* than the live ones, and the panel has its own ground now (#192). |
+| **Older** | **T4, and the art is finished**: ten junk pieces from two Gemini sheets (#188, #189), then **per-item junk jokes** (#190). No pixel-era art is left in the game. |
+| **Older still** | **The Stream stops chirping** (#186), which **still wants ears** · the picker can edit a player (#185) · four backlog decisions (#184). |
 | **The game has been played** | By Matt, shared with friends and family, and **the kids love it and said thank you** (2026-09-07). Verdict: fun, and it looks good. **It is close to release-ready**, and the Firebase question that gated sharing is now answered. |
 | **Living Water** | L1 ✅. **L2 (the actors with no voice: heron, stream leaves, sail) is not started.** |
 | **Tackle & Junk** | ✅ **T1–T4 all shipped, epic complete 2026-09-07.** T4 grew from four junk pieces to ten and took two sheets, first attempt each. No pixel-era art is left in the game. |
@@ -88,17 +89,24 @@ indexes all fifteen tools; the gear pipeline is `gear-ref.py` → prompt →
 
 ## Waiting on Matt
 
-**One step that code cannot do, and it is the only thing still exposed:
-publish `firestore.rules` in the Firebase console.** Cloud saves are gone from
-the game (no config, no SDK, no sign-in, no write path), and the file now denies
-everything, but **the rules that are live are the ones published in the
-console**. Until they are replaced, any Google account on earth can still create
-documents in the `typingFishing` collection of the project shared with Family
-Hub, whatever the game does. The file's header has the four steps; the one that
-matters is pasting only the `typingFishing` block, never the whole file, or
-Family Hub's rules go with it. Old documents are not deleted by this, just
-unreachable from a browser: the console still reads them if the saves are
-wanted before the collection is cleared.
+**Nothing here is known to be exposed, and the entry that said otherwise was
+wrong.** Until 2026-09-07 this file led with "publish `firestore.rules` in the
+Firebase console" and described the `typingFishing` collection as open to any
+Google account. `FIRESTORE.md` now carries the correction in full; the short
+version is two facts. Firestore `allow` rules are additive with no `deny`, so
+the `if false` block that file held could never have closed a collection that
+Family Hub's recursive `match /{document=**}` already covers. And Family Hub's
+checked-in rules gate on an email allowlist of one address, not on
+`request.auth != null`, so the exposure described was not what those rules do.
+`firestore.rules` is deleted rather than fixed.
+
+**What is genuinely unknown**, and only the console can answer it: whether the
+live ruleset matches the one checked into `mattohara42/family-hub`. If it is
+still an older `request.auth != null` version then the original exposure is
+real, and the deleted block would not have closed it either. **If the collection
+is wanted closed, delete the collection**: the game never reads it again, so
+there is nothing to protect, and that is far cheaper than carving a path out of
+a working wildcard in an app this repo does not own.
 
 Still open, and all one-line knobs:
 

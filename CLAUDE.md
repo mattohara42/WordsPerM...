@@ -73,8 +73,12 @@ display names. `LEGACY_KEY = "typing-fishing-save"` is older still and is
 load-bearing for the pre-profiles migration. The Firestore collection
 `typingFishing` was the other one, and it went with cloud saves on 2026-09-05:
 the game is **localStorage only**, with no Firebase config, no SDK and no
-sign-in (`FIRESTORE.md`). `firestore.rules` denies everything and **has to be
-published in the console by Matt** for that to be true of the live project too.
+sign-in (`FIRESTORE.md`). There is **no `firestore.rules` in this repo**: it was
+deleted on 2026-09-07 because the block it held could not do what it claimed.
+Firestore `allow` rules are additive with no `deny`, so denying a path beside
+Family Hub's recursive `match /{document=**}` closes nothing. `FIRESTORE.md`
+carries the correction, and the live console ruleset is the only authority on
+what is actually permitted.
 
 ## Architecture rules
 

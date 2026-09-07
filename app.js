@@ -133,12 +133,19 @@ function migrateLegacySave() {
 // document per kid, plus the `tf:index` the picker reads.
 //
 // The sync was removed on 2026-09-05 (BACKLOG.md -> Release hygiene). It rode
-// on a Firebase project shared with Family Hub, where `request.auth != null`
-// authorised any Google account on earth to create documents, and the game had
-// been handed to friends and family by then. Nobody outside the family should
-// be able to write to that project, and the least code that guarantees it is
-// none: no SDK import, no sign-in, no write path. What it costs is cross-device
-// sync, which was the one thing it bought. Kids play one device at a time.
+// on a Firebase project shared with Family Hub, and the reasoning was that
+// nobody outside the family should be able to write to that project. The least
+// code that guarantees it is none: no SDK import, no sign-in, no write path.
+// What it costs is cross-device sync, which was the one thing it bought. Kids
+// play one device at a time.
+//
+// The removal stands, but the ACCOUNT of the risk that drove it was corrected
+// on 2026-09-07 and FIRESTORE.md owns it now: Family Hub's rules gate on an
+// email allowlist rather than the `request.auth != null` this comment used to
+// claim, and the repo's answering `firestore.rules` could not have closed the
+// collection anyway, because Firestore allows are additive and there is no
+// deny. Removing the write path is still the right call and is unaffected:
+// it needs no rule to be true.
 //
 // If it ever comes back it needs its OWN Firebase project rather than this
 // hole patched: FIRESTORE.md keeps the schema and the setup for that.
