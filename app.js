@@ -2622,7 +2622,10 @@ const BADGES = [
     check: () => junkPulled() >= 1 },
   { id: "litterpicker",name: "Litter Picker",     desc: `Reel in ${CONFIG.badges.junkPulls} pieces of junk.`,
     check: () => junkPulled() >= CONFIG.badges.junkPulls },
-  { id: "junkslam",    name: "Junk Collector",    desc: "Pull up all four kinds of junk.",
+  // The description counts the registry rather than saying "four", because the
+  // check already derives from it: T4 takes the set from four pieces to ten and
+  // a hardcoded number would have gone out claiming the wrong one.
+  { id: "junkslam",    name: "Junk Collector",    desc: `Pull up all ${CONFIG.junk.items.length} kinds of junk.`,
     check: () => CONFIG.junk.items.every(j => (save.junk?.[j.id] ?? 0) > 0) },
 ];
 

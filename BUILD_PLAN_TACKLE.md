@@ -97,26 +97,41 @@ that is what it sits under. A piece never pulled stays **locked** rather than
 showing a dimmed sprite: the collection teases fish with a silhouette because
 the shape is the reward, and a boot's shape is not: the surprise is.
 
-## T4: junk art (specified 2026-09-04; waiting on one generation)
+## T4: junk art (specified 2026-09-04; respecified 2026-09-07; waiting on two generations)
 
-**Done when:** the four junk sprites are painted in the new direction and the
-game draws them.
+**Done when:** the junk sprites are painted in the new direction and the game
+draws them.
 
-**The prompt is written out whole in `ART.md` → *Open art requests* → *T4*.** It
-is the only part of this epic that needs a generation, and it is **one** sheet
-rather than four singles. Registration is not the reason (four junk items never
-have to line up with each other); *consistency of treatment* is, because T3 put
-all four side by side in the journal shelf, which is exactly where four
-separately-generated styles would read as four different games.
+**It is ten pieces now, not four.** Matt added six on 2026-09-07: a toy unicorn,
+a toy ninja turtle, a puzzle cube, a frisbee, a chocolate bar and a superhero
+mask. The four originals overwrite `junk-boot`, `junk-can`, `junk-weed` and
+`junk-nugget` in place; the six new ones are new files and new
+`CONFIG.junk.items` entries.
 
-**T4 needs no config change at all.** `CONFIG.junk.items` already names
-`junk-boot`, `junk-can`, `junk-weed` and `junk-nugget`, and the cut overwrites
-those files in place. Art only.
+**Both prompts are written out whole in `ART.md`, and there are two of them:**
+sheet A is the four originals in a 2x2, sheet B is the six new ones in a 3x2
+with sheet A attached as the style reference. Ten subjects on one canvas is past
+anything this project has measured, and a sheet that comes back with two
+subjects touching is a reroll of the whole sheet, so a ten-up failure would cost
+both halves at once. Consistency of treatment is still the reason these are
+sheets at all: T3 puts all ten side by side in the journal shelf, which is
+exactly where separately-generated styles read as separate games.
+
+**T4 stopped being art only when it stopped being four.** The originals needed
+no config change, because `CONFIG.junk.items` already named them. The six new
+ones want six entries, a look at a ten-cell shelf, and a decision on the "Junk
+Collector" badge, which goes from about 104 bites to about 366 to complete
+(n·H(n) pulls at `CONFIG.junk.chance`). All of it lands in the same commit as
+the art: an item registered without a PNG is a broken image on the catch card.
+`ART.md` carries the full list, including the one thing being left alone, which
+is that `data/puns.json`'s junk pool mixes shared lines with item-specific ones
+and picks at random, so a boot joke lands on a can today and will land on a
+puzzle cube ten times as often. That is `BACKLOG.md`'s, not this milestone's.
 
 The cutter does **not** exist yet, deliberately: `cut-fish.py`'s four detectors
 were each written against a real sheet, and a junk cut is simpler than a fish
-cut (four components keyed off flat magenta, each saved as its own square crop,
-no peduncle and no tail split). Write it when the sheet lands.
+cut (components keyed off flat magenta, each saved as its own square crop, no
+peduncle and no tail split). Write it when the sheets land.
 
 `tools/palette-check.py` is the gate, and these are the first deliveries that
 gate exists for. The check that actually decides the milestone is cruder than
