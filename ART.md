@@ -179,13 +179,33 @@ direction.
 
 ### T4: the ten junk sprites, the last pixel-era art in the game
 
-**Sheet A landed and is cut, 2026-09-07, first attempt.** 1024x1024 at a ratio
-of exactly 1.000 against an asked 1:1, border stdev 1.0/2.4/1.7, **0 px of
-residual key inside the subjects**, four subjects at 62k-78k px with the
-narrowest band between any two of them 76px, and every one of them through
-`palette-check.py` at 0.000% eroded black with no pure black pixel anywhere:
-the pixel-era sprites it replaces ran 14% to 23%. `tools/cut-junk.py` exists
-now and was written against it. **Sheet B is still outstanding.**
+**Both sheets landed and are cut, 2026-09-07, first attempt each. T4 is done
+and this request is closed.** Ten pieces from two generations, no reroll.
+
+| | sheet A | sheet B |
+|---|---|---|
+| asked / got | 1:1 → 1.000 | 3:2 → 1.491 |
+| canvas | 1024x1024 | 1264x848 |
+| border stdev | 1.0 / 2.4 / 1.7 | 1.7 / 2.9 / 3.3 |
+| **key bled into subjects** | **0 px** | **0 px** |
+| components | 4 subjects + 2 strays | 6 subjects, 0 strays |
+| narrowest band | 76px (cap 38.0) | 85px (cap 42.5) |
+| eroded black | 0.000% on all four | 0.000% on all six |
+
+**The attachment held the treatment.** Sheet B was generated with sheet A
+attached, and the two measure as one set: saturation 0.25-0.53 against A's
+0.29-0.66, tonal stdev and outline depth overlapping likewise. The one outlier
+is the chocolate bar at tonal stdev 55 against the set's 26-39, and that is a
+white wrapper beside dark chocolate, which is the subject rather than the
+treatment drifting. So **"paint new subjects in this style, here is the sheet"
+works as well as R7's "return this with one change"**, which was the open
+question when the two-sheet split was chosen. One data point, not nine.
+
+**The one thing that did not land, and it did not matter:** the unicorn was
+asked for facing left and came back facing right. Junk attaches to nothing, has
+no mouth for a line and registers against nothing, so direction is cosmetic
+here in a way it never is for a fish. Not worth a reroll, and worth writing down
+so the next person does not spend one.
 
 `CONFIG.card.junkPx`'s comment has said it for a while: *"the four junk sprites
 are the last pixel-era art in the game: the refresh never reached them."* This

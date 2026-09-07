@@ -2,6 +2,32 @@
 
 Ideas captured during design/build. Nothing here expands the current milestone.
 
+## The junk pun pool names the wrong object (T4, 2026-09-07)
+
+`data/puns.json`'s `shared.junk` mixes lines that work for anything with lines
+about one specific item, and `punFor("junk")` picks at random, so a boot joke
+lands on a can. This predates T4: it was already about a 50% miss at four items.
+T4 took the set to ten, which would have made it 60%, and it is easy to see:
+a forced pull of the superhero mask came back "a superhero mask! Dino-mite
+catch… for a lunchbox", which is the nugget's line.
+
+**Mitigated, not fixed.** Six generic lines were added in the same commit, which
+takes the pool from 6 lines (4 specific) to 12 (4 specific) and the miss from
+60% to 30%: better than what shipped before T4, and a data-only change.
+
+**The fix is per-item pools**, keyed the way the per-spot pools already are:
+`puns.junk.<id>` falling back to `puns.junk.shared`, which is the same registry
+shape as `CONFIG.fish.species` and `CONFIG.rig.gearArt`, and about six lines of
+`punFor`. Worth doing when someone is next in that file. Two of the four
+specific lines are good jokes (the boot's "re-boot" and "sole of the lake") and
+deserve to land on a boot.
+
+**Adjacent, same file, and probably the same fix:** the bite-moment pun can name
+a species during a junk pull. A forced junk catch at the Pond was announced with
+"Fish on! Bluegill-ieve it or not!" and then produced a mask. It may be
+deliberate comedy (you think it is a fish until it is not) and it reads fine,
+but nobody chose it, so it is worth a decision rather than a shrug.
+
 ## From a play session at the Stream (Matt, 2026-09-05)
 
 Six things noticed in one sitting. **Two are now done** (#183): a gate rod says

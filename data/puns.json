@@ -49,7 +49,13 @@
       "You caught {it}?! Talk about a re-boot",
       "{it}. Well, it's the sole of the lake…",
       "Only {it}, not every cast's a jackpot. Cast again!",
-      "{it}! Dino-mite catch… for a lunchbox. Not so much a lake."
+      "{it}! Dino-mite catch… for a lunchbox. Not so much a lake.",
+      "Look what the lake dragged in: {it}.",
+      "You've hooked {it}. Somebody's going to want that back!",
+      "Reeled in {it}. Something's fishy round here, and it isn't this.",
+      "{it}?! I'm not sure that counts. Have another go!",
+      "It's {it}. The lake giveth, and the lake giveth some odd stuff.",
+      "{it}! Not exactly a whopper, is it? Cast again."
     ]
   },
 

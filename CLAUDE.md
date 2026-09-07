@@ -37,8 +37,11 @@ the A7 fight beats. R5's last debt was paid on 2026-09-04: the four shop hulls
 work, as CSS tints of the Pond rowboat rather than four repaints (`ART.md` →
 *R5 debt*); the repaints stay an option in `BACKLOG.md`.
 
-Two epics are open. **Tackle & Junk**: `BUILD_PLAN_TACKLE.md` (T1-T3 shipped
-2026-09-04; **T4, the junk art, is waiting on one generation from Matt**).
+One epic is open, and one closed on 2026-09-07. **Tackle & Junk**:
+`BUILD_PLAN_TACKLE.md` (T1-T3 shipped 2026-09-04, **T4 shipped 2026-09-07 and
+the epic is complete**). T4 grew from four junk pieces to ten on the day it was
+built and took two Gemini sheets, first attempt each; there is no pixel-era art
+left in the game.
 **Living Water**: `BUILD_PLAN_LIVING.md` (L1 shipped 2026-09-05), which gives
 the voices S1 wrote bodies you can see, in CSS rather than in paint. Two rules
 from it are worth carrying anywhere else in the scene: **an actor and its sound
