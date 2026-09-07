@@ -8,7 +8,7 @@ a command instead of redoing the work by hand.
 
 Each tool's own docstring is the real reference, and it carries the reasoning
 and the numbers that set its constants. This file is the index, so a new session
-knows what exists before inventing a fifteenth one.
+knows what exists before inventing a seventeenth one.
 
 ## Which doc owns what
 
@@ -43,6 +43,7 @@ construction.
 | `cut-vessel.py` | R5 | one boat painting → `far` / `near` halves along the gunwale |
 | `cut-fish.py <sheet> [src]` | R6 | one sheet → each species' `body` and `tail` |
 | `cut-gear.py <pose> <stem> <src>` | R7 | a delivered **edit** of a pose → just the gear |
+| `cut-junk.py <sheet> [src]` | T4 | one sheet → one tight crop per junk item |
 
 **`cut-angler.py`'s source is required, and it must be the raw download.**
 `assets/angler-<pose>.png` is one of this tool's own OUTPUTS: the keyed
@@ -73,6 +74,18 @@ each paid for by a real delivery.
 | `gear-register.py <pose> <download>` | the inverse: puts a **return** back into the pose's own coordinates → `assets/reg-<name>.png`, the file you **cut** |
 | `poses.py` | not a tool. The three anglers' geometry, imported by `cut-angler.py` and `gear-register.py`: one copy of a fitted axis, because two would drift |
 | `hat-transplant.py <stem> <from> <to>` | lands a hat painted for one pose on another pose's head, by matching the two head silhouettes |
+
+**`cut-junk.py` is `cut-fish.py` with the fish taken out**, and it is worth
+knowing where it deliberately disagrees with its parent. `cut-fish.py` takes the
+N largest components and DROPS the rest, because on its sheets the rest were
+captions. Junk sheets contain art that is genuinely detached from its subject
+(the pond weed's loose leaves), so a stray is ATTACHED to the nearest subject
+instead, within a cap of half the narrowest subject-to-subject gap on that
+sheet: the largest cap for which no stray can belong to two subjects at once,
+derived per sheet rather than chosen. Past the cap it stops rather than dropping
+anything, because there a stray can only be a caption or an unnamed subject. Its
+crops are tight rather than square, since all three places the game draws junk
+use `background: center / contain`.
 
 **Attach the ref, never the keyed PNG.** `angler-<pose>.png` has an alpha
 backdrop, and an attachment carrying no magenta gives "keep the backdrop exactly
