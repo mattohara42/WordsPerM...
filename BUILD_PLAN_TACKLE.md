@@ -1,6 +1,6 @@
 # Hook, Line and Sentence: Tackle & Junk (T1–T4)
 
-**Status: active epic, opened 2026-09-04.** The first work after the Art &
+**Status: complete, 2026-09-07** (opened 2026-09-04). The first work after the Art &
 Animation Refresh closed. It is small and mostly code: the refresh painted the
 world and the gear, and this finishes the two things on the end of the line,
 the *terminal tackle* a kid actually watches, and the *junk* they pull up by
@@ -97,7 +97,7 @@ that is what it sits under. A piece never pulled stays **locked** rather than
 showing a dimmed sprite: the collection teases fish with a silhouette because
 the shape is the reward, and a boot's shape is not: the surprise is.
 
-## T4: junk art (specified 2026-09-04; respecified 2026-09-07; sheet A landed 2026-09-07)
+## T4: junk art ✅ (2026-09-07)
 
 **Done when:** the junk sprites are painted in the new direction and the game
 draws them.
@@ -108,12 +108,19 @@ mask. The four originals overwrite `junk-boot`, `junk-can`, `junk-weed` and
 `junk-nugget` in place; the six new ones are new files and new
 `CONFIG.junk.items` entries.
 
-**Sheet A is in, cut and on screen.** Four subjects, first attempt, 0 px of key
-bled into them, 0.000% eroded black where the sprites they replace ran 14% to
-23%. Verified past the startup modal at both sizes that matter: the journal
-shelf at 34px with three kinds found and one still locked, and the catch card at
-96px. 122/122 and `ui-check.mjs` clean across twelve viewports. **Sheet B is
-what T4 is now waiting on**, and the config half lands with it.
+**Both sheets are in, cut, registered and on screen.** Ten pieces, two
+generations, first attempt each, no reroll: 0 px of key bled into either, and
+0.000% eroded black on all ten where the sprites they replace ran 14% to 23%.
+`ART.md` has the full delivery table and the one thing that measured
+interestingly (sheet B was generated with sheet A attached, and the two come out
+as one set, so holding a treatment across a set works for new subjects and not
+only for R7's edits).
+
+Verified in a real browser past the startup modal at all three sizes junk is
+drawn at: the ten-cell journal shelf at 34px, the catch card at 96px, and the
+`#fish` box mid-reel. A forced junk pull was played end to end rather than the
+card synthesised, so the roll, the sprite swap, the `save.junk` increment and
+the badges all ran. 122/122 and `ui-check.mjs` clean across twelve viewports.
 
 **Both prompts are written out whole in `ART.md`, and there are two of them:**
 sheet A is the four originals in a 2x2, sheet B is the six new ones in a 3x2
@@ -123,6 +130,13 @@ subjects touching is a reroll of the whole sheet, so a ten-up failure would cost
 both halves at once. Consistency of treatment is still the reason these are
 sheets at all: T3 puts all ten side by side in the journal shelf, which is
 exactly where separately-generated styles read as separate games.
+
+**The shelf grid was left at four columns on purpose.** Ten cells make it
+4+4+2, and the badge grid it sits under is a fixed three columns with thirteen
+badges, so it already runs 3+3+3+3+1 at every width. A ragged last row is the
+panel's existing language and 4+4+2 is tidier than what is above it, so the
+change here was no change. Checked at 360x640 and up: names wrap to two lines on
+the narrowest phone and stay legible.
 
 **T4 stopped being art only when it stopped being four.** The originals needed
 no config change, because `CONFIG.junk.items` already named them. The six new

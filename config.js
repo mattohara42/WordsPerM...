@@ -792,8 +792,8 @@ export const CONFIG = {
     ocean:  null,
   },
 
-  // Junk catches: comedy fake catches (boot/can/weed/nugget) that roll in place of a
-  // fish on a small fraction of bites. No coins, no collection entry, just a
+  // Junk catches: comedy fake catches (a boot, a lost toy, a dropped snack) that
+  // roll in place of a fish on a small fraction of bites. No coins, no collection entry, just a
   // groan pun. `file` is assets/<file>.png; `{it}` in PUNS.junk gets `name`.
   // F3: the post-catch card, the moment a catch pays out. It has no display
   // duration on purpose: it is dismissed by the kid typing, not by a clock,
@@ -819,6 +819,18 @@ export const CONFIG = {
       { id: "can",  name: "a rusty can",   file: "junk-can"  },
       { id: "weed", name: "a clump of pond weed", file: "junk-weed" },
       { id: "nugget", name: "a dinosaur chicken nugget", file: "junk-nugget" },
+      // T4 sheet B: six lost toys and dropped snacks. Adding to this list is
+      // the whole of adding a junk item, which is the point of it being a list:
+      // the shelf, the badges and the roll all count it rather than a constant.
+      // "Junk Collector" is the one thing that changes shape as it grows, since
+      // collecting all of n takes n·H(n) pulls: about 8 at four items and about
+      // 29 at ten, so roughly 104 bites became roughly 366 at `chance` below.
+      { id: "unicorn", name: "a faded toy unicorn", file: "junk-unicorn" },
+      { id: "turtle", name: "a toy ninja turtle", file: "junk-turtle" },
+      { id: "cube", name: "a puzzle cube", file: "junk-cube" },
+      { id: "frisbee", name: "a chewed frisbee", file: "junk-frisbee" },
+      { id: "chocolate", name: "a soggy chocolate bar", file: "junk-chocolate" },
+      { id: "mask", name: "a superhero mask", file: "junk-mask" },
     ],
   },
 
